@@ -22,6 +22,7 @@ backend/tmp/
 backend/.vscode/
 backend/*.db/
 backend/.DS_Store
+backend/venv
 
 # Logs
 *.log

@@ -17,13 +17,15 @@ frontend/.vscode/
 frontend/.DS_Store
 
 # Backend (Node.js / Express)
-backend/node_modules/
+backend/__pycache__
+backend/*/__pycache__
 backend/.env
 backend/.cache/
 backend/coverage/
 backend/dist/
 backend/tmp/
 backend/.vscode/
+backend/*.db/
 backend/.DS_Store
 
 # Logs

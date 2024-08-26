@@ -5,7 +5,6 @@ frontend/.env
 frontend/.next/
 frontend/.cache/
 frontend/coverage/
-frontend/public/
 frontend/dist/
 frontend/tmp/
 frontend/.vscode/

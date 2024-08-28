@@ -1,11 +1,16 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 import os
 import base64
 import subprocess
 import uuid
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from db import SessionLocal, init_db
+from models import Item as ItemModel
+from schema import ItemCreate, ItemRead
+from routes import router as api_router
 
 from copilot import router as copilot_router
 
@@ -147,3 +152,21 @@ async def update_control_file(profile: str, control: str, request: UpdateControl
         return ControlFileResponse(code=decoded_code)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# nafi added
+
+# Initialize the database
+init_db()
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.include_router(api_router)
+

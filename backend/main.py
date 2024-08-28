@@ -8,9 +8,10 @@ import uuid
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from db import SessionLocal, init_db
-from models import Item as ItemModel
-from schema import ItemCreate, ItemRead
-from routes import router as api_router
+# from models import Item as ItemModel
+# from schema import ItemCreate, ItemRead
+# from routes import router as api_router
+from routes.platform import router as platform_router
 
 from copilot import router as copilot_router
 
@@ -168,5 +169,6 @@ def get_db():
         db.close()
 
 
-app.include_router(api_router)
+# app.include_router(api_router)
+app.include_router(platform_router)
 

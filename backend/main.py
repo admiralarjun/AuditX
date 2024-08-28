@@ -8,10 +8,14 @@ import uuid
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from db import SessionLocal, init_db
-# from models import Item as ItemModel
-# from schema import ItemCreate, ItemRead
-# from routes import router as api_router
-from routes.platform import router as platform_router
+from api.platform import router as platform_router
+from api.profile import router as profile_router
+from api.attribute import router as attribute_router
+from api.control import router as control_router
+from api.tag import router as tag_router
+from api.reference import router as reference_router
+from api.audit import router as audit_router
+from api.result import router as result_router
 
 from copilot import router as copilot_router
 
@@ -171,4 +175,10 @@ def get_db():
 
 # app.include_router(api_router)
 app.include_router(platform_router)
-
+app.include_router(profile_router)
+app.include_router(attribute_router)
+app.include_router(control_router)
+app.include_router(tag_router)
+app.include_router(reference_router)
+app.include_router(audit_router)
+app.include_router(result_router)

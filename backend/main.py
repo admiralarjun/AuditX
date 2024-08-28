@@ -16,6 +16,7 @@ from api.tag import router as tag_router
 from api.reference import router as reference_router
 from api.audit import router as audit_router
 from api.result import router as result_router
+from api.ssh_creds import router as ssh_creds_router
 
 from copilot import router as copilot_router
 
@@ -258,3 +259,4 @@ app.include_router(tag_router)
 app.include_router(reference_router)
 app.include_router(audit_router)
 app.include_router(result_router)
+app.include_router(ssh_creds_router)

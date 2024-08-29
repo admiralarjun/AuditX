@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Typography, Paper, Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Checkbox, Accordion, AccordionSummary, AccordionDetails
-} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
-import { executeControls, listFiles, getResult, getControls } from '../api/api';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Paper,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
+  Typography
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { executeControls, executeControlsSSH, getControls, getResult, listFiles } from '../api/api';
 import JsonDisplay from '../helper/JsonDisplay';
 
 const FileAccordion = ({ file, resultsFolder }) => {
@@ -105,7 +113,17 @@ const ControlResult = ({ profile }) => {
     }
 
     try {
-      const response = await executeControls(profile, selectedControlsList);
+      const unParsedDetails = localStorage.getItem('sshCredentials');
+      const sshDetails = JSON.parse(unParsedDetails);
+      const pemFileName = localStorage.getItem('pemFileName');
+      let response;
+
+      if(localStorage.getItem('sshCredentials') === null){
+        response = await executeControls(profile, selectedControlsList);
+      } else {
+        response = await executeControlsSSH(profile, selectedControlsList, sshDetails, pemFileName);
+      }
+      
       const folderName = response.data.results_folder;
       setResultsFolder(folderName);
 

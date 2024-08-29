@@ -11,16 +11,18 @@ import {
   CardContent,
   Modal,
   Fade,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ComputerIcon from "@mui/icons-material/Computer";
+import DesktopWindowsIcon from "@mui/icons-material/DesktopWindows";
 import axios from "axios";
 
-// Custom styled components
+// Custom styled components (reused from SSHCredentialsPage)
 const StyledContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(4),
 }));
@@ -91,14 +93,14 @@ const ModalContent = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
 }));
 
-const SSHCredentialsPage = () => {
+const WinRMPage = () => {
   const [credentials, setCredentials] = useState({
-    ssh_username: "",
-    ssh_ip: "",
-    ssh_password: "",
+    winrm_username: "",
+    winrm_password: "",
+    winrm_hostname: "",
+    winrm_port: 5986,
+    use_ssl: true,
   });
-  const [pemFile, setPemFile] = useState(null);
-  const [pemFileName, setPemFileName] = useState("Upload PEM File");
   const [allCredentials, setAllCredentials] = useState([]);
   const [isScrolling, setIsScrolling] = useState(false);
   const [selectedCredential, setSelectedCredential] = useState(null);
@@ -112,55 +114,42 @@ const SSHCredentialsPage = () => {
   const fetchAllCredentials = async () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
-      const response = await axios.get("/ssh_creds/?skip=0&limit=100");
+      const response = await axios.get("/winrm_creds/?skip=0&limit=100");
       setAllCredentials(response.data);
     } catch (error) {
-      console.error("Error fetching SSH credentials:", error);
+      console.error("Error fetching WinRM credentials:", error);
     }
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePemFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPemFileName(file.name);
-      setPemFile(file);
-    }
+    const { name, value, checked } = e.target;
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: name === "use_ssl" ? checked : value,
+    }));
   };
 
   const saveCredentials = async () => {
-    const formData = new FormData();
-    formData.append("ssh_username", credentials.ssh_username);
-    formData.append("ssh_ip", credentials.ssh_ip);
-    formData.append("ssh_password", credentials.ssh_password);
-    if (pemFile) {
-      formData.append("pem_file", pemFile);
-    }
-
     try {
       axios.defaults.baseURL = "http://localhost:8000";
-      const response = await axios.post("/ssh_creds/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.post("/winrm_creds/", credentials);
 
       if (response.data) {
-        alert("SSH credentials saved successfully.");
+        alert("WinRM credentials saved successfully.");
         fetchAllCredentials();
-        setCredentials({ ssh_username: "", ssh_ip: "", ssh_password: "" });
-        setPemFileName("Upload PEM File");
-        setPemFile(null);
+        setCredentials({
+          winrm_username: "",
+          winrm_password: "",
+          winrm_hostname: "",
+          winrm_port: 5986,
+          use_ssl: true,
+        });
       } else {
-        alert("Failed to save SSH credentials.");
+        alert("Failed to save WinRM credentials.");
       }
     } catch (error) {
-      console.error("Error saving SSH credentials:", error);
-      alert(`Failed to save SSH credentials. Error: ${error.message}`);
+      console.error("Error saving WinRM credentials:", error);
+      alert(`Failed to save WinRM credentials. Error: ${error.message}`);
     }
   };
 
@@ -195,59 +184,55 @@ const SSHCredentialsPage = () => {
           gutterBottom
           sx={{ color: "#34495e", fontWeight: "bold" }}
         >
-          SSH Credentials
+          WinRM Credentials
         </Typography>
         <Box component="form" sx={{ display: "flex", flexDirection: "column" }}>
           <StyledTextField
-            name="ssh_username"
+            name="winrm_username"
             label="Username"
             variant="outlined"
             fullWidth
-            value={credentials.ssh_username}
+            value={credentials.winrm_username}
             onChange={handleChange}
           />
           <StyledTextField
-            name="ssh_ip"
-            label="IP Address"
-            variant="outlined"
-            fullWidth
-            value={credentials.ssh_ip}
-            onChange={handleChange}
-          />
-          <StyledTextField
-            name="ssh_password"
-            label="SSH Password"
+            name="winrm_password"
+            label="Password"
             type="password"
             variant="outlined"
             fullWidth
-            value={credentials.ssh_password}
+            value={credentials.winrm_password}
             onChange={handleChange}
           />
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              marginBottom: 2,
-            }}
-          >
-            <input
-              type="file"
-              accept=".pem"
-              onChange={handlePemFileChange}
-              style={{ display: "none" }}
-              id="pem-file-upload"
-            />
-            <label htmlFor="pem-file-upload">
-              <StyledButton
-                variant="outlined"
-                component="span"
-                startIcon={<AddIcon />}
-                sx={{ color: "#3498db", borderColor: "#3498db" }}
-              >
-                {pemFileName}
-              </StyledButton>
-            </label>
+          <StyledTextField
+            name="winrm_hostname"
+            label="Hostname"
+            variant="outlined"
+            fullWidth
+            value={credentials.winrm_hostname}
+            onChange={handleChange}
+          />
+          <StyledTextField
+            name="winrm_port"
+            label="Port"
+            type="number"
+            variant="outlined"
+            fullWidth
+            value={credentials.winrm_port}
+            onChange={handleChange}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={credentials.use_ssl}
+                onChange={handleChange}
+                name="use_ssl"
+                color="primary"
+              />
+            }
+            label="Use SSL"
+          />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
             <StyledButton
               onClick={saveCredentials}
               variant="contained"
@@ -270,17 +255,7 @@ const SSHCredentialsPage = () => {
         >
           <ChevronLeftIcon />
         </ScrollButton>
-        <ScrollContainer
-          ref={scrollContainerRef}
-          sx={{
-            display: "flex",
-            overflowX: "auto",
-            gap: 2,
-            padding: 2,
-            "&::-webkit-scrollbar": { display: "none" },
-            scrollbarWidth: "none",
-          }}
-        >
+        <ScrollContainer ref={scrollContainerRef}>
           {allCredentials.map((cred) => (
             <StyledCard key={cred.id} onClick={() => handleCardClick(cred)}>
               <CardContent
@@ -299,7 +274,7 @@ const SSHCredentialsPage = () => {
                     marginBottom: 1,
                   }}
                 >
-                  <ComputerIcon
+                  <DesktopWindowsIcon
                     sx={{ color: "#3498db", fontSize: 30, marginBottom: 1 }}
                   />
                   <Typography
@@ -311,7 +286,7 @@ const SSHCredentialsPage = () => {
                       textAlign: "left",
                     }}
                   >
-                    {cred.ssh_username}
+                    {cred.winrm_username}
                   </Typography>
                 </Box>
                 <Typography
@@ -324,7 +299,7 @@ const SSHCredentialsPage = () => {
                     textAlign: "left",
                   }}
                 >
-                  {cred.ssh_ip}
+                  {cred.winrm_hostname}
                 </Typography>
               </CardContent>
             </StyledCard>
@@ -350,13 +325,19 @@ const SSHCredentialsPage = () => {
               component="h2"
               sx={{ color: "#34495e", fontWeight: "bold", marginBottom: 2 }}
             >
-              SSH Credential Details
+              WinRM Credential Details
             </Typography>
             <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
-              Username: {selectedCredential?.ssh_username}
+              Username: {selectedCredential?.winrm_username}
+            </Typography>
+            <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
+              Hostname: {selectedCredential?.winrm_hostname}
+            </Typography>
+            <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
+              Port: {selectedCredential?.winrm_port}
             </Typography>
             <Typography sx={{ color: "#7f8c8d", marginBottom: 2 }}>
-              IP Address: {selectedCredential?.ssh_ip}
+              Use SSL: {selectedCredential?.use_ssl ? "Yes" : "No"}
             </Typography>
             <StyledButton
               onClick={handleConnect}
@@ -376,4 +357,4 @@ const SSHCredentialsPage = () => {
   );
 };
 
-export default SSHCredentialsPage;
+export default WinRMPage;

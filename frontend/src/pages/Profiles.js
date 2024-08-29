@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ProfileList from '../components/ProfileList';
+import ProfileListViaBackend from '../components-db/ProfileListViaBackend';
 import ControlsList from '../components/ControlsList';
 import { Container, Grid } from '@mui/material';
 
@@ -11,6 +12,7 @@ const Profiles = () => {
       <Grid container spacing={2}>
         <Grid item xs={12} md={4}>
           <ProfileList onSelectProfile={setSelectedProfile} />
+          <ProfileListViaBackend onSelectProfile={setSelectedProfile} />
         </Grid>
         <Grid item xs={12} md={8}>
           {selectedProfile && <ControlsList profile={selectedProfile} />}

@@ -1,4 +1,4 @@
-import MonacoEditor, { loader } from '@monaco-editor/react';
+import MonacoEditor from '@monaco-editor/react';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
@@ -16,58 +16,6 @@ const ControlModal = ({ open, onClose, controlCode, onSave }) => {
   useEffect(() => {
     setCode(controlCode); // Reset code when controlCode changes
   }, [controlCode]);
-
-useEffect(() => {
-  loader.init().then(monaco => {
-    // Ensure this runs only once
-    if (monaco.languages.getLanguages().some(lang => lang.id === 'ruby')) {
-      monaco.languages.registerCompletionItemProvider('ruby', {
-        provideCompletionItems: () => {
-          const suggestions = [
-            {
-              label: 'control',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'control "my_control_id" do\n  impact 0.5\n  title "Control title"\n  desc "Control description"\n  tag "tag_name"\n  describe ... \nend',
-              documentation: 'Defines a control block in InSpec.'
-            },
-            {
-              label: 'describe',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'describe ... do\n  it { should ... }\nend',
-              documentation: 'Starts a describe block in InSpec.'
-            },
-            {
-              label: 'impact',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'impact 0.5',
-              documentation: 'Sets the impact level for a control.'
-            },
-            {
-              label: 'title',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'title "Control title"',
-              documentation: 'Defines the title of the control.'
-            },
-            {
-              label: 'desc',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'desc "Control description"',
-              documentation: 'Defines the description of the control.'
-            },
-            {
-              label: 'tag',
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: 'tag "tag_name"',
-              documentation: 'Adds a tag to the control.'
-            },
-          ];
-          return { suggestions: suggestions };
-        }
-      });
-    }
-  });
-}, []); // Empty dependency array ensures this effect runs only once
-
 
   const handleSave = () => {
     onSave(code);
@@ -102,10 +50,11 @@ useEffect(() => {
           <Typography variant="h6" sx={{ marginBottom: 2 }}>Edit Control Code</Typography>
           <MonacoEditor
             height="calc(100% - 50px)"
-            language="ruby" // Use Ruby for default syntax highlighting
+            
+            language="ruby"
             value={code}
             onChange={(newValue) => setCode(newValue)}
-            theme="vs-dark" // or 'vs-light' for a light theme
+            theme="vs-light" // Theme for styling
             options={{
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
@@ -127,7 +76,7 @@ useEffect(() => {
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 
             <CoPilot onClose={onClose} />
- 
+
           </Box>
         </Box>
         <IconButton 

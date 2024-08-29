@@ -7,7 +7,6 @@ class Control(Base):
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     profile_id = Column(Integer, ForeignKey('profiles.id'))
-    control_id = Column(String, index=True)
     title = Column(String)
     description = Column(Text)
     impact = Column(Float)

@@ -15,7 +15,7 @@ const ControlModal = ({ open, onClose, controlCode, onSave }) => {
 
   useEffect(() => {
     setCode(controlCode); // Reset code when controlCode changes
-  }, [controlCode]);
+  }, [controlCode, code]);
 
 useEffect(() => {
   loader.init().then(monaco => {

@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Typography, Paper, Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Box
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
-import { getControls, getControlFile, updateControlFile } from '../api/api';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+  Button, CircularProgress,
+  Paper,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
+  Typography
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { getControlFile, getControls, updateControlFile } from '../api/api';
 import ControlModal from './ControlModal'; // Update import to reflect new file structure
 
 import { Buffer } from 'buffer'; // Ensure Buffer is available

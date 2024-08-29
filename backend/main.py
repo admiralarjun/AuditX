@@ -17,6 +17,7 @@ from api.reference import router as reference_router
 from api.audit import router as audit_router
 from api.result import router as result_router
 from api.ssh_creds import router as ssh_creds_router
+from api.winrm_creds import router as winrm_creds_router
 from api.cis_pdf import router as cis_pdf_router
 
 from copilot import router as copilot_router
@@ -262,3 +263,4 @@ app.include_router(audit_router)
 app.include_router(result_router)
 app.include_router(ssh_creds_router)
 app.include_router(cis_pdf_router)
+app.include_router(winrm_creds_router)

@@ -1,22 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Typography, Paper, Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Box
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
-import { getControls, getControlFile, updateControlFile } from '../api/api';
-import ControlModal from './ControlModal'; // Update import to reflect new file structure
+import ControlModal from './ControlModal';
 
-import { Buffer } from 'buffer'; // Ensure Buffer is available
+// API functions
+const getControls = async (profileId) => {
+  return await axios.get(`/api/controls?profile_id=${profileId}`);
+};
 
-const encodeBase64 = (text) => Buffer.from(text).toString('base64');
-const decodeBase64 = (text) => Buffer.from(text, 'base64').toString('utf-8');
+const getControl = async (controlId) => {
+  return await axios.get(`/api/controls/${controlId}`);
+};
 
-const ControlsList = ({ profile }) => {
+const updateControl = async (controlId, updatedControl) => {
+  return await axios.put(`/api/controls/${controlId}`, updatedControl);
+};
+
+const ControlsList = ({ selectedProfile }) => {
   const [controls, setControls] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('control');
+  const [orderBy, setOrderBy] = useState('control_id');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editingControl, setEditingControl] = useState(null);
@@ -24,18 +32,20 @@ const ControlsList = ({ profile }) => {
 
   useEffect(() => {
     const fetchControls = async () => {
+      if (!selectedProfile) return;
+      setLoading(true);
       try {
-        const response = await getControls(profile);
-        console.log(response.data.controls);
-        const fetchedControls = response.data.controls || [];
-        setControls(fetchedControls);
+        const response = await getControls(selectedProfile.id);
+        setControls(response.data);
       } catch (err) {
         console.error(err);
         setError('Error fetching controls');
+      } finally {
+        setLoading(false);
       }
     };
     fetchControls();
-  }, [profile]);
+  }, [selectedProfile]);
 
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -43,64 +53,59 @@ const ControlsList = ({ profile }) => {
     setOrderBy(property);
   };
 
-  const handleEditControl = async (control) => {
+  const handleEditControl = async (controlId) => {
     setLoading(true);
     try {
-      const response = await getControlFile(profile, control);
-      setEditingControl({
-        name: control,
-        code: response.data.code,
-      });
+      const response = await getControl(controlId);
+      setEditingControl(response.data);
       setModalOpen(true);
     } catch (err) {
       console.error(err);
-      setError('Error fetching control file');
+      setError('Error fetching control');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveControl = async (updatedCode) => {
-    if (typeof updatedCode !== 'string' || updatedCode.trim() === '') {
-      alert('Invalid code. Please provide a valid control code.');
-      return;
-    }
-
+  const handleSaveControl = async (updatedControl) => {
     setLoading(true);
     try {
-      await updateControlFile(profile, editingControl.name, encodeBase64(updatedCode));
+      await updateControl(editingControl.id, updatedControl);
       setControls((prevControls) =>
         prevControls.map((control) =>
-          control === editingControl.name ? control : control
+          control.id === editingControl.id ? { ...control, ...updatedControl } : control
         )
       );
+      setModalOpen(false);
     } catch (err) {
       console.error(err);
-      setError('Error saving control file');
+      setError('Error saving control');
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredControls = (controls || []).filter(control =>
-    control.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredControls = controls.filter(control =>
+    control.control_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    control.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedControls = filteredControls.sort((a, b) => {
-    if (orderBy === 'control') {
+    if (orderBy === 'control_id') {
       return order === 'asc'
-        ? a.localeCompare(b)
-        : b.localeCompare(a);
+        ? a.control_id.localeCompare(b.control_id)
+        : b.control_id.localeCompare(a.control_id);
     }
     return 0;
   });
 
+  if (!selectedProfile) return <Typography>Please select a profile</Typography>;
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>
-      <Typography variant="h6">Manage Controls for {profile}</Typography>
+      <Typography variant="h6">Controls for {selectedProfile.name}</Typography>
       <TextField
         placeholder="Search controls..."
         variant="outlined"
@@ -117,25 +122,27 @@ const ControlsList = ({ profile }) => {
             <TableRow>
               <TableCell>
                 <TableSortLabel
-                  active={orderBy === 'control'}
-                  direction={orderBy === 'control' ? order : 'asc'}
-                  onClick={() => handleRequestSort('control')}
+                  active={orderBy === 'control_id'}
+                  direction={orderBy === 'control_id' ? order : 'asc'}
+                  onClick={() => handleRequestSort('control_id')}
                 >
-                  Control
+                  Control ID
                 </TableSortLabel>
               </TableCell>
+              <TableCell>Title</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {(sortedControls || []).map(control => (
-              <TableRow key={control}>
-                <TableCell>{control}</TableCell>
+            {sortedControls.map(control => (
+              <TableRow key={control.id}>
+                <TableCell>{control.control_id}</TableCell>
+                <TableCell>{control.title}</TableCell>
                 <TableCell>
                   <Button
                     variant="outlined"
                     startIcon={<EditIcon />}
-                    onClick={() => handleEditControl(control)}
+                    onClick={() => handleEditControl(control.id)}
                   >
                     Edit
                   </Button>
@@ -145,12 +152,14 @@ const ControlsList = ({ profile }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      <ControlModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        controlCode={editingControl?.code || ''}
-        onSave={handleSaveControl}
-      />
+      {editingControl && (
+        <ControlModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          control={editingControl}
+          onSave={handleSaveControl}
+        />
+      )}
     </Paper>
   );
 };

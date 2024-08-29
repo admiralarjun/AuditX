@@ -24,6 +24,7 @@ backend/.DS_Store
 backend/venv
 backend/results
 backend/uploads/pems
+backend/sql_app.db
 
 # Logs
 *.log

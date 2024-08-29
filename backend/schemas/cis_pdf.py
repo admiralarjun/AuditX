@@ -1,16 +1,15 @@
 from pydantic import BaseModel
-from typing import List
 
-class PDFCreate(BaseModel):
-    title: str
-    tags: List[str]
+class CISPDFCreate(BaseModel):
+    pdf_title: str
     pdf_path: str
+    tag: str
 
-class PDFRead(BaseModel):
+class CISPDFRead(BaseModel):
     id: int
-    title: str
-    tags: List[str]
+    pdf_title: str
     pdf_path: str
+    tag: str
 
     class Config:
         orm_mode = True

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
 import {
+  Box,
+  CircularProgress,
   List,
   ListItem,
   ListItemText,
-  CircularProgress,
-  Typography,
   Paper,
-  Box,
+  Typography,
 } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import { getProfiles } from "../api/profileBackendApi";
 
 const ProfileList = ({ onSelectProfile }) => {

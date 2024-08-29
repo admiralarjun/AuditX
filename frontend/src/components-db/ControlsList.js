@@ -1,23 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import {
-  Typography, Paper, Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Box
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+  Button, CircularProgress,
+  Paper,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
+  Typography
+} from '@mui/material';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import ControlModal from './ControlModal';
 
+const API_URL = 'http://localhost:8000';
 // API functions
 const getControls = async (profileId) => {
-  return await axios.get(`/api/controls?profile_id=${profileId}`);
+  return await axios.get(`${API_URL}/controls/profile/${profileId}`);
 };
 
 const getControl = async (controlId) => {
-  return await axios.get(`/api/controls/${controlId}`);
+  const res=  await axios.get(`${API_URL}/controls/${controlId}`);
+  console.log("response owo",res.data);
+  return res;
 };
 
 const updateControl = async (controlId, updatedControl) => {
-  return await axios.put(`/api/controls/${controlId}`, updatedControl);
+  return await axios.put(`${API_URL}/controls/${controlId}`, updatedControl);
 };
 
 const ControlsList = ({ selectedProfile }) => {
@@ -38,7 +44,7 @@ const ControlsList = ({ selectedProfile }) => {
         const response = await getControls(selectedProfile.id);
         setControls(response.data);
       } catch (err) {
-        console.error(err);
+        console.error("error fetching controls",err);
         setError('Error fetching controls');
       } finally {
         setLoading(false);
@@ -55,9 +61,14 @@ const ControlsList = ({ selectedProfile }) => {
 
   const handleEditControl = async (controlId) => {
     setLoading(true);
+    console.log("control id", controlId);
     try {
       const response = await getControl(controlId);
-      setEditingControl(response.data);
+      setEditingControl({
+        id: response.data.id,
+        title: response.data.title,
+        code: response.data.code
+      });
       setModalOpen(true);
     } catch (err) {
       console.error(err);
@@ -66,6 +77,13 @@ const ControlsList = ({ selectedProfile }) => {
       setLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    if (editingControl) {
+      console.log("editing", editingControl.code);
+    }
+  }, [editingControl]);
 
   const handleSaveControl = async (updatedControl) => {
     setLoading(true);
@@ -86,15 +104,15 @@ const ControlsList = ({ selectedProfile }) => {
   };
 
   const filteredControls = controls.filter(control =>
-    control.control_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    control.id===(searchQuery) ||
     control.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedControls = filteredControls.sort((a, b) => {
-    if (orderBy === 'control_id') {
+    if (orderBy === 'id') {
       return order === 'asc'
-        ? a.control_id.localeCompare(b.control_id)
-        : b.control_id.localeCompare(a.control_id);
+        ? a.id.localeCompare(b.id)
+        : b.id.localeCompare(a.id);
     }
     return 0;
   });
@@ -136,7 +154,7 @@ const ControlsList = ({ selectedProfile }) => {
           <TableBody>
             {sortedControls.map(control => (
               <TableRow key={control.id}>
-                <TableCell>{control.control_id}</TableCell>
+                <TableCell>{control.id}</TableCell>
                 <TableCell>{control.title}</TableCell>
                 <TableCell>
                   <Button
@@ -152,14 +170,14 @@ const ControlsList = ({ selectedProfile }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      {editingControl && (
-        <ControlModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          control={editingControl}
-          onSave={handleSaveControl}
-        />
-      )}
+        {editingControl && (
+          <ControlModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            controlCode={editingControl.code}
+            onSave={handleSaveControl}
+          />
+        )}
     </Paper>
   );
 };

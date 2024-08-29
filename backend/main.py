@@ -16,6 +16,7 @@ from api.tag import router as tag_router
 from api.reference import router as reference_router
 from api.audit import router as audit_router
 from api.result import router as result_router
+from api.ssh_creds import router as ssh_creds_router
 
 from copilot import router as copilot_router
 
@@ -102,13 +103,89 @@ async def execute_controls(profile_name: str, request: Request):
             control_path = os.path.join(profile_path, control)
             result_file = os.path.join(results_folder, f"{os.path.basename(control)}.json")
             command = f"inspec exec {control_path} --reporter json:{result_file}"
-
             try:
                 subprocess.run(command, shell=True, check=True)
             except subprocess.CalledProcessError:
                 pass
 
     return {"results_folder": os.path.basename(results_folder)}
+
+@app.post("/execute_controls_ssh/{profile_name}")
+async def execute_controls_ssh(profile_name: str, request: Request):
+    try:
+        profile_path = os.path.join(controls_dir, profile_name)
+        if not os.path.exists(profile_path) or not os.path.isdir(profile_path):
+            raise HTTPException(status_code=404, detail="Profile not found")
+
+        controls = [file for file in os.listdir(profile_path) if file.endswith(".rb")]
+        if not controls:
+            raise HTTPException(status_code=404, detail="No controls found for this profile")
+
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid JSON")
+
+        selected_controls = body.get('controls', [])
+        ip_address = body.get('ip_address')
+        username = body.get('username')
+        pem_file_base64 = body.get('pemFile')
+        ssh_password = body.get('password')
+
+        if not selected_controls:
+            raise HTTPException(status_code=400, detail="No controls selected")
+
+        if not ip_address or not username or (not pem_file_base64 and not ssh_password):
+            raise HTTPException(status_code=400, detail="Missing SSH credentials")
+
+        # Decode and save the PEM file content if provided
+        pem_file_path = None
+        if pem_file_base64:
+            pem_file_path = os.path.join("./tmp", f"{uuid.uuid4()}.pem")
+            with open(pem_file_path, "wb") as pem_file:
+                pem_file.write(base64.b64decode(pem_file_base64))
+
+        invalid_controls = [control for control in selected_controls if control not in controls]
+        if invalid_controls:
+            raise HTTPException(status_code=400, detail=f"Invalid controls: {', '.join(invalid_controls)}")
+
+        # Create a unique folder for the results
+        results_folder = os.path.join(results_dir, str(uuid.uuid4()))
+        os.makedirs(results_folder, exist_ok=True)
+
+        for control in selected_controls:
+            if control in controls:
+                control_path = os.path.join(profile_path, control)
+                result_file = os.path.join(results_folder, f"{os.path.basename(control)}.json")
+
+                # Construct the SSH target string
+                ssh_target = f"ssh://{username}@{ip_address}"
+
+                if pem_file_path:
+                    ssh_command = f"-i {pem_file_path}"
+                elif ssh_password:
+                    ssh_command = f"--password {ssh_password}"
+                else:
+                    raise HTTPException(status_code=400, detail="No valid authentication method provided")
+
+                # Construct the full inspec exec command
+                command = f"inspec exec {control_path} -t {ssh_target} {ssh_command} --reporter json:{result_file}"
+
+                try:
+                    subprocess.run(command, shell=True, check=True)
+                except subprocess.CalledProcessError:
+                    pass
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Failed to execute control {control}: {str(e)}")
+
+        # Clean up PEM file if it was used
+        if pem_file_path and os.path.exists(pem_file_path):
+            os.remove(pem_file_path)
+
+        return {"results_folder": os.path.basename(results_folder)}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/list_files/{folder_name}")
 async def list_files(folder_name: str):
@@ -182,3 +259,4 @@ app.include_router(tag_router)
 app.include_router(reference_router)
 app.include_router(audit_router)
 app.include_router(result_router)
+app.include_router(ssh_creds_router)

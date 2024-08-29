@@ -23,6 +23,7 @@ backend/*.db/
 backend/.DS_Store
 backend/venv
 backend/results
+backend/uploads/pems
 
 # Logs
 *.log

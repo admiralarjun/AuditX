@@ -1,5 +1,5 @@
 # api/winrm_creds.py - API routes for WinRM Credentials
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Body
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.winrm_creds import WinRMCreds as WinRMCredsModel
@@ -18,19 +18,15 @@ def get_db():
 
 @router.post("/winrm_creds/", response_model=WinRMCredsRead)
 def create_winrm_creds(
-    winrm_username: str = Form(...),
-    winrm_password: str = Form(...),
-    winrm_hostname: str = Form(...),
-    winrm_port: int = Form(5986),  # Default WinRM SSL port
-    use_ssl: bool = Form(True),
+    winrm_data: dict = Body(...),  # Expect JSON body
     db: Session = Depends(get_db)
 ):
     db_winrm_creds = WinRMCredsModel(
-        winrm_username=winrm_username,
-        winrm_password=winrm_password,
-        winrm_hostname=winrm_hostname,
-        winrm_port=winrm_port,
-        use_ssl=use_ssl
+        winrm_username=winrm_data["winrm_username"],
+        winrm_password=winrm_data["winrm_password"],
+        winrm_hostname=winrm_data["winrm_hostname"],
+        winrm_port=winrm_data.get("winrm_port", 5986),  # Default port if not provided
+        use_ssl=winrm_data.get("use_ssl", True)  # Default SSL usage if not provided
     )
     db.add(db_winrm_creds)
     db.commit()

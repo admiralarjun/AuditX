@@ -114,7 +114,9 @@ const WinRMPage = () => {
   const fetchAllCredentials = async () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
+      
       const response = await axios.get("/winrm_creds/?skip=0&limit=100");
+      console.log("WinRM credentials:", response.data);
       setAllCredentials(response.data);
     } catch (error) {
       console.error("Error fetching WinRM credentials:", error);
@@ -132,6 +134,7 @@ const WinRMPage = () => {
   const saveCredentials = async () => {
     try {
       axios.defaults.baseURL = "http://localhost:8000";
+      console.log("Saving WinRM credentials: ", credentials);
       const response = await axios.post("/winrm_creds/", credentials);
 
       if (response.data) {
@@ -232,7 +235,9 @@ const WinRMPage = () => {
             }
             label="Use SSL"
           />
-          <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}
+          >
             <StyledButton
               onClick={saveCredentials}
               variant="contained"

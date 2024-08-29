@@ -21,3 +21,14 @@ class ControlRead(BaseModel):
 
     class Config:
         orm_mode = True
+
+class ControlUpdate(BaseModel):
+    profile_id: Optional[int] = None
+    control_id: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    impact: Optional[float] = None
+    code: Optional[str] = None
+
+    class Config:
+        orm_mode = True

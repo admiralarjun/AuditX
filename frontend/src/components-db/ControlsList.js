@@ -1,24 +1,34 @@
-import EditIcon from '@mui/icons-material/Edit';
-import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
 import {
-  Button, CircularProgress,
+  Button,
+  CircularProgress,
   Paper,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
-  Typography
-} from '@mui/material';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import ControlModal from './ControlModal';
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  TextField,
+  Typography,
+} from "@mui/material";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import ControlModal from "./ControlModal";
+import ControlAddModal from "./ControlAddModal";
 
-const API_URL = 'http://localhost:8000';
+const API_URL = "http://localhost:8000";
 // API functions
 const getControls = async (profileId) => {
   return await axios.get(`${API_URL}/controls/profile/${profileId}`);
 };
 
 const getControl = async (controlId) => {
-  const res=  await axios.get(`${API_URL}/controls/${controlId}`);
-  console.log("response owo",res.data);
+  const res = await axios.get(`${API_URL}/controls/${controlId}`);
+  console.log("response owo", res.data);
   return res;
 };
 
@@ -28,13 +38,14 @@ const updateControl = async (controlId, updatedControl) => {
 
 const ControlsList = ({ selectedProfile }) => {
   const [controls, setControls] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('control_id');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("control_id");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editingControl, setEditingControl] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchControls = async () => {
@@ -44,8 +55,8 @@ const ControlsList = ({ selectedProfile }) => {
         const response = await getControls(selectedProfile.id);
         setControls(response.data);
       } catch (err) {
-        console.error("error fetching controls",err);
-        setError('Error fetching controls');
+        console.error("error fetching controls", err);
+        setError("Error fetching controls");
       } finally {
         setLoading(false);
       }
@@ -54,8 +65,8 @@ const ControlsList = ({ selectedProfile }) => {
   }, [selectedProfile]);
 
   const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
@@ -67,17 +78,33 @@ const ControlsList = ({ selectedProfile }) => {
       setEditingControl({
         id: response.data.id,
         title: response.data.title,
-        code: response.data.code
+        code: response.data.code,
       });
       setModalOpen(true);
     } catch (err) {
       console.error(err);
-      setError('Error fetching control');
+      setError("Error fetching control");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleAddControl = async (newControl) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/controls/`, {
+        ...newControl,
+        profile_id: selectedProfile.id,
+      });
+      setControls((prevControls) => [...prevControls, response.data]);
+      setAddModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setError("Error adding control");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (editingControl) {
@@ -91,26 +118,29 @@ const ControlsList = ({ selectedProfile }) => {
       await updateControl(editingControl.id, updatedControl);
       setControls((prevControls) =>
         prevControls.map((control) =>
-          control.id === editingControl.id ? { ...control, ...updatedControl } : control
+          control.id === editingControl.id
+            ? { ...control, ...updatedControl }
+            : control
         )
       );
       setModalOpen(false);
     } catch (err) {
       console.error(err);
-      setError('Error saving control');
+      setError("Error saving control");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredControls = controls.filter(control =>
-    control.id===(searchQuery) ||
-    control.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredControls = controls.filter(
+    (control) =>
+      control.id === searchQuery ||
+      control.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedControls = filteredControls.sort((a, b) => {
-    if (orderBy === 'id') {
-      return order === 'asc'
+    if (orderBy === "id") {
+      return order === "asc"
         ? a.id.localeCompare(b.id)
         : b.id.localeCompare(a.id);
     }
@@ -124,14 +154,22 @@ const ControlsList = ({ selectedProfile }) => {
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>
       <Typography variant="h6">Controls for {selectedProfile.name}</Typography>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => setAddModalOpen(true)}
+        sx={{ marginBottom: 2 }}
+      >
+        Add Control
+      </Button>
       <TextField
         placeholder="Search controls..."
         variant="outlined"
         size="small"
-        sx={{ marginBottom: 2, width: '100%' }}
+        sx={{ marginBottom: 2, width: "100%" }}
         onChange={(e) => setSearchQuery(e.target.value)}
         InputProps={{
-          startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+          startAdornment: <SearchIcon sx={{ color: "action.active", mr: 1 }} />,
         }}
       />
       <TableContainer>
@@ -140,9 +178,9 @@ const ControlsList = ({ selectedProfile }) => {
             <TableRow>
               <TableCell>
                 <TableSortLabel
-                  active={orderBy === 'control_id'}
-                  direction={orderBy === 'control_id' ? order : 'asc'}
-                  onClick={() => handleRequestSort('control_id')}
+                  active={orderBy === "control_id"}
+                  direction={orderBy === "control_id" ? order : "asc"}
+                  onClick={() => handleRequestSort("control_id")}
                 >
                   Control ID
                 </TableSortLabel>
@@ -152,7 +190,7 @@ const ControlsList = ({ selectedProfile }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedControls.map(control => (
+            {sortedControls.map((control) => (
               <TableRow key={control.id}>
                 <TableCell>{control.id}</TableCell>
                 <TableCell>{control.title}</TableCell>
@@ -170,14 +208,19 @@ const ControlsList = ({ selectedProfile }) => {
           </TableBody>
         </Table>
       </TableContainer>
-        {editingControl && (
-          <ControlModal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            controlCode={editingControl.code}
-            onSave={handleSaveControl}
-          />
-        )}
+      {editingControl && (
+        <ControlModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          controlCode={editingControl.code}
+          onSave={handleSaveControl}
+        />
+      )}
+      <ControlAddModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onAdd={handleAddControl}
+      />
     </Paper>
   );
 };

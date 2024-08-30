@@ -74,52 +74,33 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     # Run the command and capture the output
                     process = subprocess.run(command, shell=True, capture_output=True, text=True)
                     
-                    # Parse the JSON output
-                    result_json = json.loads(process.stdout)
-
-                    # Extract fields from the JSON result (you may need to adjust this based on actual output structure)
-                    result = Result(
+                    # Get the JSON output
+                    result_json = process.stdout
+                    db_result = ResultModel(
                         profile_id=profile_id,
-                        status=result_json.get("status", "unknown"),
-                        code_desc=result_json.get("code_desc", ""),
-                        run_time=result_json.get("run_time", 0.0),
-                        start_time=result_json.get("start_time", None),
-                        total_controls=result_json.get("total_controls", 0),
-                        passed_controls=result_json.get("passed_controls", 0),
-                        failed_controls=result_json.get("failed_controls", 0),
-                        message=result_json.get("message", ""),
-                        resource_class=result_json.get("resource_class", ""),
-                        resource_params=result_json.get("resource_params", ""),
-                        resource_id=result_json.get("resource_id", "")
+                        result_json=result_json  # Store the entire JSON output as a string
                     )
-                    
-                    # Save the result to the database
-                    db.add(result)
+                    db.add(db_result)
                     db.commit()
-                    db.refresh(result)
+                    db.refresh(db_result)
 
-                    result_data.append(result)
-                    
+                    result_data.append(db_result)
+
                 except subprocess.CalledProcessError as e:
                     # Capture stdout even if the command failed (non-zero exit code)
                     print(f"Error executing control {control.id}: {e}")
-                    result_json = json.loads(e.stdout)
-                    
-                    # Store the error details
-                    result = Result(
-                        profile_id=profile_id,
-                        status="error",
-                        message=result_json.get("message", str(e))
-                    )
-                    
-                    db.add(result)
-                    db.commit()
-                    db.refresh(result)
-
-                    result_data.append(result)
+                    result_json = e.stdout
                 
-                except Exception as e:
-                    raise HTTPException(status_code=500, detail=f"Unexpected error executing control {control.id}: {str(e)}")
+                    # Persist the result in the database
+                    db_result = ResultModel(
+                        profile_id=profile_id,
+                        result_json=result_json  # Store the entire JSON output as a string
+                    )
+                    db.add(db_result)
+                    db.commit()
+                    db.refresh(db_result)
+
+                    result_data.append(db_result)
                 
                 finally:
                     # Ensure the temporary file is deleted

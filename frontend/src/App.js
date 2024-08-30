@@ -1,13 +1,14 @@
+import { CssBaseline } from "@mui/material";
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Profiles from "./pages/Profiles";
+import CIS from "./pages/CIS";
 import Execute from "./pages/Execute";
+import Home from "./pages/Home";
+import PlatformPage from "./pages/Platform";
+import Profiles from "./pages/Profiles";
 import SSHPage from "./pages/SSHPage";
 import WinRMPage from "./pages/WinRMPage";
-import CIS from "./pages/CIS";
-import { CssBaseline } from "@mui/material";
 
 const App = () => (
   <Router>
@@ -20,6 +21,7 @@ const App = () => (
       <Route path="/ssh_page" element={<SSHPage />} />
       <Route path="/winrm_page" element={<WinRMPage />} />
       <Route path="/cis_page" element={<CIS />} />
+      <Route path="/platform" element={<PlatformPage />} /> 
     </Routes>
   </Router>
 );

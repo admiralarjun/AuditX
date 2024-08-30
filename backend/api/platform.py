@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.platform import Platform as PlatformModel
-from schemas.platform import PlatformCreate, PlatformRead
+from schemas.platform import PlatformCreate, PlatformRead, PlatformUpdate
 from typing import List
 
 router = APIRouter()
@@ -34,3 +34,26 @@ def read_platform(platform_id: int, db: Session = Depends(get_db)):
 def get_all_platforms(db: Session = Depends(get_db)):
     platforms = db.query(PlatformModel).all()
     return platforms
+
+@router.put("/platforms/{platform_id}", response_model=PlatformRead)
+def update_platform(platform_id: int, platform: PlatformUpdate, db: Session = Depends(get_db)):
+    db_platform = db.query(PlatformModel).filter(PlatformModel.id == platform_id).first()
+    if db_platform is None:
+        raise HTTPException(status_code=404, detail="Platform not found")
+    
+    update_data = platform.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_platform, key, value)
+    
+    db.commit()
+    db.refresh(db_platform)
+    return db_platform
+
+@router.delete("/platforms/{platform_id}", response_model=PlatformRead)
+def delete_platform(platform_id: int, db: Session = Depends(get_db)):
+    platform = db.query(PlatformModel).filter(PlatformModel.id == platform_id).first()
+    if platform is None:
+        raise HTTPException(status_code=404, detail="Platform not found")
+    db.delete(platform)
+    db.commit()
+    return platform

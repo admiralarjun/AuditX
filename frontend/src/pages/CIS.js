@@ -113,14 +113,16 @@ const CIS = () => {
       alert("Please select a PDF file to upload.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("pdf_file", pdfFile);
-  
+
     try {
       axios.defaults.baseURL = "http://localhost:8000";
       const response = await axios.post(
-        `/cis_pdfs/?pdf_title=${encodeURIComponent(pdfInfo.pdf_title)}&tag=${encodeURIComponent(pdfInfo.tag)}`,
+        `/cis_pdfs/?pdf_title=${encodeURIComponent(
+          pdfInfo.pdf_title
+        )}&tag=${encodeURIComponent(pdfInfo.tag)}`,
         formData,
         {
           headers: {
@@ -128,7 +130,7 @@ const CIS = () => {
           },
         }
       );
-  
+
       if (response.data) {
         alert("PDF uploaded successfully.");
         fetchAllPdfs();
@@ -172,7 +174,7 @@ const CIS = () => {
           gutterBottom
           sx={{ color: "#34495e", fontWeight: "bold" }}
         >
-          Upload PDF
+          Upload CIS Benchmark
         </Typography>
         <Box component="form" sx={{ display: "flex", flexDirection: "column" }}>
           <StyledTextField
@@ -237,7 +239,7 @@ const CIS = () => {
           gutterBottom
           sx={{ color: "#34495e", fontWeight: "bold" }}
         >
-          Uploaded PDFs
+          Uploaded Benchmarks
         </Typography>
         <Grid container spacing={2}>
           {allPdfs.map((pdf) => (

@@ -1,7 +1,7 @@
-// ProfileAddModal.js
-import React, { useState } from "react";
-import { Modal, Box, Typography, TextField, Button } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Modal, Box, Typography, TextField, Button, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { createProfile } from "../api/profileBackendApi";
+import { getPlatforms } from "../api/platformApi";
 
 const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
   const [profileData, setProfileData] = useState({
@@ -16,6 +16,21 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
     copyright: "",
     copyright_email: "",
   });
+  
+  const [platforms, setPlatforms] = useState([]);
+
+  useEffect(() => {
+    const fetchPlatforms = async () => {
+      try {
+        const response = await getPlatforms();
+        setPlatforms(response.data);
+      } catch (error) {
+        console.error("Error fetching platforms:", error);
+      }
+    };
+
+    fetchPlatforms();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +71,22 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
           Add New Profile
         </Typography>
 
-        {Object.keys(profileData).map((key) => (
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Platform</InputLabel>
+          <Select
+            name="platform_id"
+            value={profileData.platform_id}
+            onChange={handleChange}
+          >
+            {platforms.map((platform) => (
+              <MenuItem key={platform.id} value={platform.id}>
+                {platform.name} {/* Adjust this based on your platform data */}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {Object.keys(profileData).filter(key => key !== 'platform_id').map((key) => (
           <TextField
             key={key}
             label={capitalizeFirstLetter(key.replace("_", " "))}

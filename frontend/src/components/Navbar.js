@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import VpnKeyIcon from "@mui/icons-material/VpnKey"; // Import the icon
 import Save from "@mui/icons-material/Save";
 import SecurityIcon from "@mui/icons-material/Security"; // Import CIS Benchmarks Icon
+import MenuBookIcon from "@mui/icons-material/MenuBook"; // knowledge icon
 
 const Navbar = () => {
   return (
@@ -70,7 +71,7 @@ const Navbar = () => {
               to="/cis_page"
               sx={iconButtonStyles}
             >
-              <SecurityIcon /> {/* SSH Key Icon */}
+              <MenuBookIcon /> {/* SSH Key Icon */}
             </IconButton>
           </Box>
         </Container>

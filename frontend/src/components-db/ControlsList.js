@@ -1,6 +1,6 @@
+import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import SearchIcon from "@mui/icons-material/Search";
-import AddIcon from "@mui/icons-material/Add";
 import {
   Button,
   CircularProgress,
@@ -17,8 +17,8 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import ControlModal from "./ControlModal";
 import ControlAddModal from "./ControlAddModal";
+import ControlModal from "./ControlModal";
 
 const API_URL = "http://localhost:8000";
 // API functions
@@ -33,7 +33,7 @@ const getControl = async (controlId) => {
 };
 
 const updateControl = async (controlId, updatedControl) => {
-  return await axios.put(`${API_URL}/controls/${controlId}`, updatedControl);
+  return await axios.put(`${API_URL}/controls/${controlId}`, { code: updatedControl });
 };
 
 const ControlsList = ({ selectedProfile }) => {

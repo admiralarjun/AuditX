@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography, TextField, Button, CircularProgress } from '@mui/material';
 import { getCoPilotResponse } from '../api/api'; // Adjust the import path as needed
-import Markdown from 'react-markdown'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const CoPilot = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -27,12 +28,19 @@ const CoPilot = ({ onClose }) => {
     }
   };
 
+  const stripQuotes = (str) => {
+    if (str.startsWith('"') && str.endsWith('"')) {
+      return str.slice(1, -1);
+    }
+    return str;
+  };
+
   const handleGenerateCode = async () => {
     setLoading(true);
     try {
       const action = getActionString(activeTab);
       const response = await getCoPilotResponse(action, input);
-      setOutput(JSON.stringify(response.response));
+      setOutput(stripQuotes(response.response));
     } catch (error) {
       console.error('Error calling CoPilot API:', error);
       setOutput('Error generating response');
@@ -64,7 +72,17 @@ const CoPilot = ({ onClose }) => {
         </Button>
         <Box sx={{ marginTop: 2 }}>
           <Typography variant="h6">Output:</Typography>
-          <Typography variant="body1"><Markdown>{output}</Markdown></Typography>
+          <SyntaxHighlighter 
+            language="ruby" 
+            style={vscDarkPlus} 
+            wrapLongLines={true}
+            customStyle={{
+              maxHeight: '300px',
+              overflowY: 'auto',
+            }}
+          >
+            {stripQuotes(output)}
+          </SyntaxHighlighter>
         </Box>
       </Box>
     </Box>

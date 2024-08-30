@@ -9,3 +9,8 @@ const encodeBase64 = (str) => {
 
 // API calls for profiles and controls
 export const getProfiles = () => axios.get(`${API_URL}/profiles`);
+
+export const createProfile = async (profileData) => {
+  const response = await axios.post(`${API_URL}/profiles/`, profileData);
+  return response.data;
+};

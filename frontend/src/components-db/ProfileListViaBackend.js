@@ -1,3 +1,4 @@
+// ProfileList.js
 import {
   Box,
   CircularProgress,
@@ -6,8 +7,10 @@ import {
   ListItemText,
   Paper,
   Typography,
+  Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import ProfileAddModal from './ProfileAddModal';
 import { getProfiles } from "../api/profileBackendApi";
 
 const ProfileList = ({ onSelectProfile }) => {
@@ -15,6 +18,7 @@ const ProfileList = ({ onSelectProfile }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -35,6 +39,10 @@ const ProfileList = ({ onSelectProfile }) => {
   const handleProfileClick = (profile) => {
     setSelectedProfile(profile);
     onSelectProfile(profile);
+  };
+
+  const handleAddProfile = (newProfile) => {
+    setProfiles([...profiles, newProfile]);
   };
 
   if (loading) {
@@ -75,6 +83,9 @@ const ProfileList = ({ onSelectProfile }) => {
       <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>
         Profiles
       </Typography>
+      <Button variant="contained" color="primary" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
+        Add New Profile
+      </Button>
       {profiles.length === 0 ? (
         <Typography>No profiles available</Typography>
       ) : (
@@ -113,6 +124,7 @@ const ProfileList = ({ onSelectProfile }) => {
           ))}
         </List>
       )}
+      <ProfileAddModal open={isModalOpen} onClose={() => setModalOpen(false)} onProfileAdded={handleAddProfile} />
     </Paper>
   );
 };

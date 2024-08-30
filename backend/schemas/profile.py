@@ -29,3 +29,15 @@ class ProfileRead(BaseModel):
 
     class Config:
         orm_mode = True
+
+class ProfileUpdate(BaseModel):
+    platform_id: Optional[int] = None
+    name: Optional[str] = None
+    version: Optional[str] = None
+    path: Optional[str] = None
+    title: Optional[str] = None
+    maintainer: Optional[str] = None
+    summary: Optional[str] = None
+    license: Optional[str] = None
+    copyright: Optional[str] = None
+    copyright_email: Optional[str] = None

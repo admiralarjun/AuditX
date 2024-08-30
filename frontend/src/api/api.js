@@ -17,6 +17,18 @@ export const executeControls = (profileName, selectedControlsList) => {
   });
 };
 
+export const executeControlsSSH = async (profileName, selectedControlsList, sshDetails, pemFileName) => {
+  return axios.post(`${API_URL}/execute_controls_ssh/${profileName}`, {
+    controls: selectedControlsList,
+    username: sshDetails.username,
+    password: sshDetails.password,
+    pemFile: sshDetails.pemFile,
+    pemFileName: pemFileName,
+    ip_address: sshDetails.ip,
+  });
+};
+
+
 export const getControlFile = (profile, control) => {
   return axios.get(`${API_URL}/controls/${profile}/files/${control}`);
 };

@@ -6,9 +6,9 @@ import {
   ListItemText,
   Paper,
   Typography,
-} from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { getProfiles } from '../api/api';
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { getProfiles } from "../api/profileBackendApi";
 
 const ProfileList = ({ onSelectProfile }) => {
   const [profiles, setProfiles] = useState([]);
@@ -20,9 +20,10 @@ const ProfileList = ({ onSelectProfile }) => {
     const fetchProfiles = async () => {
       try {
         const response = await getProfiles();
-        setProfiles(response.data.profiles || []); // Ensure profiles is an array
+        console.log(response.data);
+        setProfiles(response.data || []); // Assuming the response.data is already the array of profiles
       } catch (error) {
-        setError('Error fetching profiles');
+        setError("Error fetching profiles");
       } finally {
         setLoading(false);
       }
@@ -40,10 +41,10 @@ const ProfileList = ({ onSelectProfile }) => {
     return (
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
         }}
       >
         <CircularProgress />
@@ -53,7 +54,7 @@ const ProfileList = ({ onSelectProfile }) => {
 
   if (error) {
     return (
-      <Paper elevation={3} sx={{ padding: 2, textAlign: 'center' }}>
+      <Paper elevation={3} sx={{ padding: 2, textAlign: "center" }}>
         <Typography color="error" variant="h6">
           {error}
         </Typography>
@@ -62,8 +63,16 @@ const ProfileList = ({ onSelectProfile }) => {
   }
 
   return (
-    <Paper elevation={3} sx={{ padding: 2, height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
+    <Paper
+      elevation={3}
+      sx={{
+        padding: 2,
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>
         Profiles
       </Typography>
       {profiles.length === 0 ? (
@@ -71,31 +80,35 @@ const ProfileList = ({ onSelectProfile }) => {
       ) : (
         <List
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1, // Space between items
-            height: '100%',
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            height: "100%",
             padding: 0,
-            overflowY: 'auto', // Scrollable if needed
+            overflowY: "auto",
           }}
         >
           {profiles.map((profile) => (
             <ListItem
               button
-              key={profile}
+              key={profile.id}
               onClick={() => handleProfileClick(profile)}
               sx={{
-                backgroundColor: selectedProfile === profile ? '#c5cae9' : 'inherit',
-                '&:hover': {
-                  backgroundColor: '#e8eaf6',
+                backgroundColor:
+                  selectedProfile === profile ? "#c5cae9" : "inherit",
+                "&:hover": {
+                  backgroundColor: "#e8eaf6",
                 },
                 borderRadius: 1,
-                transition: 'background-color 0.3s ease',
-                marginRight: 2, // Right margin to add space
-                padding: '8px 16px', // Adjust padding for better spacing
+                transition: "background-color 0.3s ease",
+                marginRight: 2,
+                padding: "8px 16px",
               }}
             >
-              <ListItemText primary={profile} />
+              <ListItemText
+                primary={profile.name}
+                secondary={`Version: ${profile.version} | Maintainer: ${profile.maintainer}`}
+              />
             </ListItem>
           ))}
         </List>

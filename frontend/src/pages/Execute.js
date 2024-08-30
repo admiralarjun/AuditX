@@ -18,7 +18,7 @@ const Execute = () => {
         </Grid>
         <Grid item xs={12} md={8}>
           {/* {selectedProfile && <ControlResult profile={selectedProfile} />} */}
-          {selectedProfile && ( <ControlResult selectedProfile={ selectedProfile} /> )}
+          {selectedProfile && ( <ControlResult selectedProfile={selectedProfile} /> )}
         </Grid>
       </Grid>
     </Container>

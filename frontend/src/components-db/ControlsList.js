@@ -27,9 +27,7 @@ const getControls = async (profileId) => {
 };
 
 const getControl = async (controlId) => {
-  const res = await axios.get(`${API_URL}/controls/${controlId}`);
-  console.log("response owo", res.data);
-  return res;
+  return await axios.get(`${API_URL}/controls/${controlId}`);
 };
 
 const updateControl = async (controlId, updatedControl) => {
@@ -50,8 +48,10 @@ const ControlsList = ({ selectedProfile }) => {
   useEffect(() => {
     const fetchControls = async () => {
       if (!selectedProfile) return;
+
       setLoading(true);
       try {
+        console.log("selected profile", selectedProfile);
         const response = await getControls(selectedProfile.id);
         setControls(response.data);
       } catch (err) {

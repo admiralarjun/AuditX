@@ -15,39 +15,33 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import JsonDisplay from '../helper/JsonDisplay';
 
-const FileAccordion = ({ file }) => {
+const FileAccordion = ({ fileJson, fileName }) => {
   const [fileData, setFileData] = useState(null);
 
   useEffect(() => {
-    const fetchFileData = async () => {
-      try {
-        setFileData(file);
-      } catch (err) {
-        console.error(err);
-        setFileData({ error: 'Error fetching file details' });
-      }
-    };
-    fetchFileData();
-  }, [file]);
-
-  useEffect(() => console.log("file data haha",fileData), [fileData]);
+    if (fileJson) {
+      setFileData(fileJson);
+    } else {
+      setFileData({ error: 'No data available for this file' });
+    }
+  }, [fileJson]);
 
   if (!fileData) return <CircularProgress />;
 
   const isPassed = !JSON.stringify(fileData).includes('failed');
 
   return (
-    <Accordion key={file} sx={{ marginBottom: 2 }}>
+    <Accordion sx={{ marginBottom: 2 }}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls={`panel-${file}-content`}
-        id={`panel-${file}-header`}
+        aria-controls={`panel-${fileName}-content`}
+        id={`panel-${fileName}-header`}
         sx={{ backgroundColor: isPassed ? 'success.main' : 'error.main' }}
       >
-        <Typography variant="body1" sx={{ color: 'white' }}>{file}</Typography>
+        <Typography variant="body1" sx={{ color: 'white' }}>{fileName}</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <JsonDisplay data={fileData}/>
+        <JsonDisplay data={fileData} />
       </AccordionDetails>
     </Accordion>
   );
@@ -56,7 +50,7 @@ const FileAccordion = ({ file }) => {
 const ControlResult = ({ selectedProfile }) => {
   const [controls, setControls] = useState([]);
   const [selectedControls, setSelectedControls] = useState({});
-  const [fetched, setFecthed] = useState(null);
+  const [fetched, setFetched] = useState(false);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -68,48 +62,30 @@ const ControlResult = ({ selectedProfile }) => {
 
   const getControls = async (profileId) => {
     const res = await axios.get(`${API_URL}/controls/profile/${profileId}`);
-    console.log("Controls response:", res);
-    return res;
+    return res.data;
   };
-
-  useEffect(() => {
-    console.log("Selected profile:", selectedProfile);
-  }, [selectedProfile]);
-
-  const executeControls = (profileId, selectedControlsList) => {
-    console.log("Executing controls for profile:", profileId, "Selected controls:", selectedControlsList);
-    return axios.post(`${API_URL}/execute_controls/${profileId}`, {
-      selected_controls: selectedControlsList
-    });
-  };
-
-  // const listFiles = (folderName) => axios.get(`${API_URL}/list_files/${folderName}`);
 
   useEffect(() => {
     const fetchControls = async () => {
-      try {
-        console.log("Fetching controls for profile:", selectedProfile);
-        setLoading(true);
-        const response = await getControls(selectedProfile.id);
-        console.log("Controls fetched:", response.data);
-        setControls(response.data || []);
-
-        const initialSelectedState = (response.data || []).reduce((acc, control) => {
-          acc[control.id] = false;
-          return acc;
-        }, {});
-        setSelectedControls(initialSelectedState);
-      } catch (err) {
-        console.error(err);
-        setError('Error fetching controls');
-      } finally {
-        setLoading(false);
+      if (selectedProfile && selectedProfile.id) {
+        try {
+          setLoading(true);
+          const data = await getControls(selectedProfile.id);
+          setControls(data || []);
+          const initialSelectedState = (data || []).reduce((acc, control) => {
+            acc[control.id] = false;
+            return acc;
+          }, {});
+          setSelectedControls(initialSelectedState);
+        } catch (err) {
+          setError('Error fetching controls');
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    if (selectedProfile && selectedProfile.id) {
-      fetchControls();
-    }
+    fetchControls();
   }, [selectedProfile]);
 
   const handleSelectAll = (event) => {
@@ -144,12 +120,20 @@ const ControlResult = ({ selectedProfile }) => {
     }
 
     try {
-      const response = await executeControls(selectedProfile.id, selectedControlsList);
-      console.log("Controls executed:", response.data);
-      setFiles(response.data.result_json);
-      setFecthed(true);
+      const response = await axios.post(`${API_URL}/execute_controls/${selectedProfile.id}`, {
+        selected_controls: selectedControlsList
+      });
+
+      const parsedResults = response.data.results.map(result => {
+        return {
+          ...result,
+          result_json: JSON.parse(result.result_json)
+        };
+      });
+
+      setFiles(parsedResults || []);
+      setFetched(true);
     } catch (err) {
-      console.error(err);
       setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
@@ -240,9 +224,13 @@ const ControlResult = ({ selectedProfile }) => {
       ) : (
         <>
           <Typography variant="h6">Results for {selectedProfile?.name}</Typography>
-          {files.length > 0 ? files.map(file => (
-            <FileAccordion key={file} file={file} />
-          )) : <Typography>No results found</Typography>}
+          {files.length > 0 ? (
+            files.map((file, index) => (
+              <FileAccordion key={index} fileName={`Control ${file.id}`} fileJson={file.result_json} />
+            ))
+          ) : (
+            <Typography>No results found</Typography>
+          )}
         </>
       )}
     </Paper>

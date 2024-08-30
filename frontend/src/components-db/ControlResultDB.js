@@ -15,24 +15,22 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import JsonDisplay from '../helper/JsonDisplay';
 
-const FileAccordion = ({ file, resultsFolder }) => {
+const FileAccordion = ({ file }) => {
   const [fileData, setFileData] = useState(null);
-  const API_URL = 'http://localhost:8000';
-
-  const getResult = (folderName, fileName) => axios.get(`${API_URL}/results/${folderName}/${fileName}`);
 
   useEffect(() => {
     const fetchFileData = async () => {
       try {
-        const response = await getResult(resultsFolder, file);
-        setFileData(response.data);
+        setFileData(file);
       } catch (err) {
         console.error(err);
         setFileData({ error: 'Error fetching file details' });
       }
     };
     fetchFileData();
-  }, [file, resultsFolder]);
+  }, [file]);
+
+  useEffect(() => console.log("file data haha",fileData), [fileData]);
 
   if (!fileData) return <CircularProgress />;
 
@@ -58,7 +56,7 @@ const FileAccordion = ({ file, resultsFolder }) => {
 const ControlResult = ({ selectedProfile }) => {
   const [controls, setControls] = useState([]);
   const [selectedControls, setSelectedControls] = useState({});
-  const [resultsFolder, setResultsFolder] = useState(null);
+  const [fetched, setFecthed] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -85,7 +83,7 @@ const ControlResult = ({ selectedProfile }) => {
     });
   };
 
-  const listFiles = (folderName) => axios.get(`${API_URL}/list_files/${folderName}`);
+  // const listFiles = (folderName) => axios.get(`${API_URL}/list_files/${folderName}`);
 
   useEffect(() => {
     const fetchControls = async () => {
@@ -147,11 +145,9 @@ const ControlResult = ({ selectedProfile }) => {
 
     try {
       const response = await executeControls(selectedProfile.id, selectedControlsList);
-      const folderName = response.data.results_folder;
-      setResultsFolder(folderName);
-
-      const fileListResponse = await listFiles(folderName);
-      setFiles(fileListResponse.data);
+      console.log("Controls executed:", response.data);
+      setFiles(response.data.result_json);
+      setFecthed(true);
     } catch (err) {
       console.error(err);
       setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
@@ -184,7 +180,7 @@ const ControlResult = ({ selectedProfile }) => {
 
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>
-      {!resultsFolder ? (
+      {!fetched ? (
         <>
           <Typography variant="h6">Select Controls for {selectedProfile?.name}</Typography>
           <TextField
@@ -245,7 +241,7 @@ const ControlResult = ({ selectedProfile }) => {
         <>
           <Typography variant="h6">Results for {selectedProfile?.name}</Typography>
           {files.length > 0 ? files.map(file => (
-            <FileAccordion key={file} file={file} resultsFolder={resultsFolder} />
+            <FileAccordion key={file} file={file} />
           )) : <Typography>No results found</Typography>}
         </>
       )}

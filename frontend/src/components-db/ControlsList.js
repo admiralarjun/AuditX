@@ -1,6 +1,4 @@
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import SearchIcon from "@mui/icons-material/Search";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   CircularProgress,
@@ -14,13 +12,21 @@ import {
   TableSortLabel,
   TextField,
   Typography,
+  Chip,
+  Tooltip,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
+import InfoIcon from "@mui/icons-material/Info";
+import ErrorIcon from "@mui/icons-material/Error";
+import WarningIcon from "@mui/icons-material/Warning";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
 import ControlAddModal from "./ControlAddModal";
 import ControlModal from "./ControlModal";
 
 const API_URL = "http://localhost:8000";
+
 // API functions
 const getControls = async (profileId) => {
   return await axios.get(`${API_URL}/controls/profile/${profileId}`);
@@ -34,11 +40,23 @@ const updateControl = async (controlId, updatedControl) => {
   return await axios.put(`${API_URL}/controls/${controlId}`, { code: updatedControl });
 };
 
+const impactIcons = {
+  0: <InfoIcon color="info" />,
+  0.5: <WarningIcon color="warning" />,
+  1: <ErrorIcon color="error" />,
+};
+
+const impactColors = {
+  0: "info",
+  0.5: "warning",
+  1: "error",
+};
+
 const ControlsList = ({ selectedProfile }) => {
   const [controls, setControls] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("control_id");
+  const [orderBy, setOrderBy] = useState("id");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editingControl, setEditingControl] = useState(null);
@@ -51,11 +69,10 @@ const ControlsList = ({ selectedProfile }) => {
 
       setLoading(true);
       try {
-        console.log("selected profile", selectedProfile);
         const response = await getControls(selectedProfile.id);
         setControls(response.data);
       } catch (err) {
-        console.error("error fetching controls", err);
+        console.error("Error fetching controls:", err);
         setError("Error fetching controls");
       } finally {
         setLoading(false);
@@ -72,7 +89,6 @@ const ControlsList = ({ selectedProfile }) => {
 
   const handleEditControl = async (controlId) => {
     setLoading(true);
-    console.log("control id", controlId);
     try {
       const response = await getControl(controlId);
       setEditingControl({
@@ -106,12 +122,6 @@ const ControlsList = ({ selectedProfile }) => {
     }
   };
 
-  useEffect(() => {
-    if (editingControl) {
-      console.log("editing", editingControl.code);
-    }
-  }, [editingControl]);
-
   const handleSaveControl = async (updatedControl) => {
     setLoading(true);
     try {
@@ -134,15 +144,16 @@ const ControlsList = ({ selectedProfile }) => {
 
   const filteredControls = controls.filter(
     (control) =>
-      control.id === searchQuery ||
-      control.title.toLowerCase().includes(searchQuery.toLowerCase())
+      control.id.toString().includes(searchQuery) ||
+      control.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      control.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedControls = filteredControls.sort((a, b) => {
     if (orderBy === "id") {
       return order === "asc"
-        ? a.id.localeCompare(b.id)
-        : b.id.localeCompare(a.id);
+        ? a.id - b.id
+        : b.id - a.id;
     }
     return 0;
   });
@@ -178,14 +189,32 @@ const ControlsList = ({ selectedProfile }) => {
             <TableRow>
               <TableCell>
                 <TableSortLabel
-                  active={orderBy === "control_id"}
-                  direction={orderBy === "control_id" ? order : "asc"}
-                  onClick={() => handleRequestSort("control_id")}
+                  active={orderBy === "id"}
+                  direction={orderBy === "id" ? order : "asc"}
+                  onClick={() => handleRequestSort("id")}
                 >
-                  Control ID
+                  ID
                 </TableSortLabel>
               </TableCell>
-              <TableCell>Title</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === "title"}
+                  direction={orderBy === "title" ? order : "asc"}
+                  onClick={() => handleRequestSort("title")}
+                >
+                  Title
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === "impact"}
+                  direction={orderBy === "impact" ? order : "asc"}
+                  onClick={() => handleRequestSort("impact")}
+                >
+                  Impact
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>Description</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -194,6 +223,29 @@ const ControlsList = ({ selectedProfile }) => {
               <TableRow key={control.id}>
                 <TableCell>{control.id}</TableCell>
                 <TableCell>{control.title}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={`Impact ${control.impact}`}
+                    icon={impactIcons[control.impact]}
+                    color={impactColors[control.impact]}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={control.description} arrow>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {control.description}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
                 <TableCell>
                   <Button
                     variant="outlined"

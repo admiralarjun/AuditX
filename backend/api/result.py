@@ -5,6 +5,7 @@ from db import SessionLocal
 from models.result import Result as ResultModel
 from schemas.result import ResultCreate, ResultRead
 from models.control import Control as ControlModel
+from models.ssh_creds import SSHCreds as SSHCredsModel
 import subprocess
 import uuid
 import json
@@ -46,7 +47,9 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
 
         # Fetch the selected_controls list from the request body
         selected_controls = body.get('selected_controls', [])
-        
+        selectedCredentialId = body.get('selectedCredentialId')
+        selectedCredentialType = body.get('selectedCredentialType')
+        print(f"Selected id and type: {selectedCredentialId} - {selectedCredentialType}")
         # Fetch controls from the database for the given profile
         controls = db.query(ControlModel).filter(ControlModel.profile_id == profile_id).all()
 
@@ -67,15 +70,32 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     temp_file.write(control.code.encode('utf-8'))
                     temp_file_path = temp_file.name
 
-                # Command to execute the InSpec control
-                command = f"inspec exec {temp_file_path} --reporter json"
 
+                if(selectedCredentialType == "ssh"):
+                    ssh_creds = db.query(SSHCredsModel).filter(SSHCredsModel.id == selectedCredentialId).first()
+                    if ssh_creds is None:
+                        raise HTTPException(status_code=404, detail="SSH Credentials not found")
+                    
+                    ssh_target = f"{ssh_creds.ssh_username}@{ssh_creds.ssh_ip}"
+                    if ssh_creds.ssh_pem_path:
+                        ssh_command = f"-i {ssh_creds.ssh_pem_path}"
+                    elif ssh_creds.ssh_password:
+                        ssh_command = f"--password {ssh_creds.ssh_password}"
+                    else:
+                        raise HTTPException(status_code=400, detail="No valid authentication method provided")
+                    
+                    command = f"inspec exec {temp_file_path} -t ssh://{ssh_target} {ssh_command} --reporter json"
+                else:
+                    command = f"inspec exec {temp_file_path} --reporter json"
+
+                print(f"Executing command: {command}")
                 try:
                     # Run the command and capture the output
                     process = subprocess.run(command, shell=True, capture_output=True, text=True)
                     
                     # Get the JSON output
                     result_json = process.stdout
+                    print(f"Result JSON: {result_json}")
                     db_result = ResultModel(
                         profile_id=profile_id,
                         result_json=result_json  # Store the entire JSON output as a string
@@ -90,7 +110,7 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     # Capture stdout even if the command failed (non-zero exit code)
                     print(f"Error executing control {control.id}: {e}")
                     result_json = e.stdout
-                
+                    print(f"Result JSON: {result_json}")
                     # Persist the result in the database
                     db_result = ResultModel(
                         profile_id=profile_id,
@@ -117,3 +137,4 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
     except Exception as exc:
         print(f"An unexpected error occurred: {exc}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {exc}")
+    

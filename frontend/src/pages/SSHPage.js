@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Typography,
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Box,
-  IconButton,
-  Card,
-  CardContent,
-  Modal,
-  Fade,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
-import SaveIcon from "@mui/icons-material/Save";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ComputerIcon from "@mui/icons-material/Computer";
+import SaveIcon from "@mui/icons-material/Save";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Fade,
+  IconButton,
+  Modal,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import axios from "axios";
+import React, { useEffect, useRef, useState } from "react";
 
 // Custom styled components
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -97,6 +97,7 @@ const SSHCredentialsPage = () => {
     ssh_ip: "",
     ssh_password: "",
   });
+  
   const [pemFile, setPemFile] = useState(null);
   const [pemFileName, setPemFileName] = useState("Upload PEM File");
   const [allCredentials, setAllCredentials] = useState([]);
@@ -184,6 +185,8 @@ const SSHCredentialsPage = () => {
   const handleConnect = () => {
     // Implement connection logic here
     console.log("Connecting to:", selectedCredential);
+    localStorage.setItem("selectedCredential", selectedCredential.id);
+    localStorage.setItem("selectedCredentialType", "ssh");
     setIsModalOpen(false);
   };
 

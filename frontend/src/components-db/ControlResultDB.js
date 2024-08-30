@@ -119,9 +119,19 @@ const ControlResult = ({ selectedProfile }) => {
       return;
     }
 
+    const selectedCredentialId = localStorage.getItem('selectedCredential');
+    const selectedCredentialType = localStorage.getItem('selectedCredentialType');
+
+    console.log('selectedCredentialMethod', selectedCredentialType);
+    console.log('selectedCredentialId', selectedCredentialId);
+
     try {
-      const response = await axios.post(`${API_URL}/execute_controls/${selectedProfile.id}`, {
-        selected_controls: selectedControlsList
+      let full_url = `${API_URL}/execute_controls/${selectedProfile.id}`;
+
+      const response = await axios.post(full_url, {
+        selected_controls: selectedControlsList,
+        selectedCredentialId,
+        selectedCredentialType
       });
 
       const parsedResults = response.data.results.map(result => {

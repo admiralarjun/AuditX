@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.platform import Platform as PlatformModel
 from schemas.platform import PlatformCreate, PlatformRead
+from typing import List
 
 router = APIRouter()
 
@@ -28,3 +29,8 @@ def read_platform(platform_id: int, db: Session = Depends(get_db)):
     if platform is None:
         raise HTTPException(status_code=404, detail="Platform not found")
     return platform
+
+@router.get("/platforms/", response_model=List[PlatformRead])
+def get_all_platforms(db: Session = Depends(get_db)):
+    platforms = db.query(PlatformModel).all()
+    return platforms

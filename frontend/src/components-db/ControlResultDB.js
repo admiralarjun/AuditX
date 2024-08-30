@@ -21,6 +21,7 @@ const FileAccordion = ({ fileJson, fileName }) => {
   useEffect(() => {
     if (fileJson) {
       setFileData(fileJson);
+      console.log('File data set to state:', fileJson);
     } else {
       setFileData({ error: 'No data available for this file' });
     }

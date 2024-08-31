@@ -145,15 +145,10 @@ const ControlResult = ({ selectedProfile }) => {
         selectedCredentialId,
         selectedCredentialType,
       });
-
-      const parsedResults = response.data.results.map((result) => {
-        return {
-          ...result,
-          result_json: JSON.parse(result.result_json),
-        };
+      const parsedResults = response.data.results.map(result => {
+        return JSON.parse(result);
       });
-
-      setFiles(parsedResults || []);
+      setFiles(parsedResults);
       setFetched(true);
 
       // New API call to push fileJson into results - yesterdays i commented out
@@ -169,14 +164,14 @@ const ControlResult = ({ selectedProfile }) => {
         }
       }
     } catch (err) {
-      setError(
-        "Error executing controls: " +
-          (err.response?.data?.detail || err.message)
-      );
+      console.log(err);
+      setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => console.log('filer', files), [files]);
 
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -278,11 +273,7 @@ const ControlResult = ({ selectedProfile }) => {
           </Typography>
           {files.length > 0 ? (
             files.map((file, index) => (
-              <FileAccordion
-                key={index}
-                fileName={`Control ${file.id}`}
-                fileJson={file.result_json}
-              />
+              <FileAccordion key={index} fileName={`Control ${file.profiles[0].controls[0].id}`} fileJson={file} />
             ))
           ) : (
             <Typography>No results found</Typography>

@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
+import SearchIcon from "@mui/icons-material/Search";
+import WarningIcon from "@mui/icons-material/Warning";
 import {
   Button,
+  Chip,
   CircularProgress,
   Paper,
   Table,
@@ -11,17 +17,11 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
-  Typography,
-  Chip,
   Tooltip,
+  Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import SearchIcon from "@mui/icons-material/Search";
-import InfoIcon from "@mui/icons-material/Info";
-import ErrorIcon from "@mui/icons-material/Error";
-import WarningIcon from "@mui/icons-material/Warning";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
 import ControlAddModal from "./ControlAddModal";
 import ControlModal from "./ControlModal";
 
@@ -172,6 +172,14 @@ const ControlsList = ({ selectedProfile }) => {
         sx={{ marginBottom: 2 }}
       >
         Add Control
+      </Button>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => setAddModalOpen(true)}
+        sx={{ marginBottom: 2 }}
+      >
+        Add Templated Control
       </Button>
       <TextField
         placeholder="Search controls..."

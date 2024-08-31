@@ -182,6 +182,9 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
 
             {/* Right Side - AI Integration */}
             <Box sx={{ width: "50%", paddingLeft: 2, overflow: "auto" }}>
+              <Typography variant="h6" sx={{ marginBottom: 3 }}>
+                AI Code Generation
+              </Typography>
               <Box sx={{ height: editorHeight, overflow: "auto" }}>
                 <CoPilot
                   onCodeGenerated={(generatedCode) => setCode(generatedCode)}

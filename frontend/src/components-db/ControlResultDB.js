@@ -135,6 +135,7 @@ const ControlResult = ({ selectedProfile }) => {
         selectedCredentialType
       });
 
+      console.log('response', response.data);
       const parsedResults = response.data.results.map(result => {
         return {
           ...result,
@@ -145,11 +146,14 @@ const ControlResult = ({ selectedProfile }) => {
       setFiles(parsedResults || []);
       setFetched(true);
     } catch (err) {
+      console.log(err);
       setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => console.log('filer', files), [files]);
 
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';

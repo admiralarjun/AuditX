@@ -104,7 +104,7 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     db.commit()
                     db.refresh(db_result)
 
-                    result_data.append(db_result)
+                    result_data.append(result_json)
 
                 except subprocess.CalledProcessError as e:
                     # Capture stdout even if the command failed (non-zero exit code)
@@ -128,7 +128,6 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                         os.remove(temp_file_path)
                     except Exception as e:
                         print(f"Failed to delete temporary file {temp_file_path}: {str(e)}")
-
         return {"results": result_data}
 
     except HTTPException as http_exc:

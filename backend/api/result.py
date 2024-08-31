@@ -1,4 +1,4 @@
-
+# api/result.py
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from db import SessionLocal
@@ -6,11 +6,11 @@ from models.result import Result as ResultModel
 from schemas.result import ResultCreate, ResultRead
 from models.control import Control as ControlModel
 from models.ssh_creds import SSHCreds as SSHCredsModel
+from typing import List
 import subprocess
 import uuid
 import json
 import tempfile
-import os  
 import os
 
 router = APIRouter()
@@ -23,6 +23,7 @@ def get_db():
     finally:
         db.close()
 
+# Create a new result
 @router.post("/results/", response_model=ResultRead)
 def create_result(result: ResultCreate, db: Session = Depends(get_db)):
     db_result = ResultModel(**result.dict())
@@ -31,12 +32,45 @@ def create_result(result: ResultCreate, db: Session = Depends(get_db)):
     db.refresh(db_result)
     return db_result
 
+
+# Read a specific result by ID
 @router.get("/results/{result_id}", response_model=ResultRead)
 def read_result(result_id: int, db: Session = Depends(get_db)):
     result = db.query(ResultModel).filter(ResultModel.id == result_id).first()
     if result is None:
         raise HTTPException(status_code=404, detail="Result not found")
     return result
+
+# Fetch all results
+@router.get("/results/", response_model=List[ResultRead])
+def read_all_results(db: Session = Depends(get_db)):
+    results = db.query(ResultModel).all()
+    return results
+
+# Update a specific result by ID
+@router.put("/results/{result_id}", response_model=ResultRead)
+def update_result(result_id: int, updated_result: ResultCreate, db: Session = Depends(get_db)):
+    db_result = db.query(ResultModel).filter(ResultModel.id == result_id).first()
+    if db_result is None:
+        raise HTTPException(status_code=404, detail="Result not found")
+    
+    for key, value in updated_result.dict().items():
+        setattr(db_result, key, value)
+
+    db.commit()
+    db.refresh(db_result)
+    return db_result
+
+# Delete a specific result by ID
+@router.delete("/results/{result_id}", response_model=ResultRead)
+def delete_result(result_id: int, db: Session = Depends(get_db)):
+    db_result = db.query(ResultModel).filter(ResultModel.id == result_id).first()
+    if db_result is None:
+        raise HTTPException(status_code=404, detail="Result not found")
+    
+    db.delete(db_result)
+    db.commit()
+    return db_result
 
 @router.post("/execute_controls/{profile_id}")
 async def execute_controls(profile_id: int, request: Request, db: Session = Depends(get_db)):

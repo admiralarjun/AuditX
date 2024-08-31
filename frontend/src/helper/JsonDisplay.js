@@ -1,42 +1,76 @@
-import React from 'react';
+import React, { useState } from "react";
+import axios from "axios";
 import {
-  Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Box
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Box,
+  Button,
+} from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 const stripTrailingBlankLines = (code) => {
-  return code.replace(/(\r?\n)+$/, '');
+  return code.replace(/(\r?\n)+$/, "");
 };
 
-const formatJSON = (data) => {
-  if (!data) return <Typography color="error">No data available</Typography>;
+const formatJSON = (send_results) => {
+  if (!send_results)
+    return <Typography color="error">No data available</Typography>;
 
   return (
     <div>
-      {data.platform && (
+      {send_results.platform && (
         <>
-          <Typography variant="h6" sx={{ marginBottom: 1 }}>Platform</Typography>
-          <Paper sx={{ padding: 2, marginBottom: 2, display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-            <Typography variant="body1"><strong>Name:</strong> {data.platform.name}</Typography>
-            <Typography variant="body1"><strong>Release:</strong> {data.platform.release}</Typography>
+          <Typography variant="h6" sx={{ marginBottom: 1 }}>
+            Platform
+          </Typography>
+          <Paper
+            sx={{
+              padding: 2,
+              marginBottom: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "start",
+            }}
+          >
+            <Typography variant="body1">
+              <strong>Name:</strong> {send_results.platform.name}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Release:</strong> {send_results.platform.release}
+            </Typography>
           </Paper>
         </>
       )}
 
-      {data.profiles && data.profiles.length > 0 && (
+      {send_results.profiles && send_results.profiles.length > 0 && (
         <>
-          <Typography variant="h6" sx={{ marginBottom: 1 }}>Profiles</Typography>
-          {data.profiles.map((profile, index) => (
-            <div key={index} style={{ marginBottom: '2rem' }}>
+          <Typography variant="h6" sx={{ marginBottom: 1 }}>
+            Profiles
+          </Typography>
+          {send_results.profiles.map((profile, index) => (
+            <div key={index} style={{ marginBottom: "2rem" }}>
               <Paper sx={{ padding: 2, marginBottom: 2 }}>
-                <Typography variant="body2" sx={{ marginBottom: 1 }}><strong>SHA256:</strong> {profile.sha256}</Typography>
-                <Typography variant="body2" sx={{ marginBottom: 1 }}><strong>Title:</strong> {profile.title}</Typography>
+                <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                  <strong>SHA256:</strong> {profile.sha256}
+                </Typography>
+                <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                  <strong>Title:</strong> {profile.title}
+                </Typography>
                 {profile.controls && profile.controls.length > 0 && (
                   <>
-                    <Typography variant="body2" sx={{ marginBottom: 1 }}><strong>Controls:</strong></Typography>
+                    <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                      <strong>Controls:</strong>
+                    </Typography>
                     <TableContainer component={Paper} sx={{ marginTop: 2 }}>
                       <Table size="small">
                         <TableHead>
@@ -56,12 +90,28 @@ const formatJSON = (data) => {
                               <TableCell>
                                 <Chip
                                   label={control.results[0].status}
-                                  color={control.results[0].status === 'passed' ? 'success' : 'error'}
-                                  icon={control.results[0].status === 'passed' ? <CheckCircleIcon /> : <CancelIcon />}
+                                  color={
+                                    control.results[0].status === "passed"
+                                      ? "success"
+                                      : "error"
+                                  }
+                                  icon={
+                                    control.results[0].status === "passed" ? (
+                                      <CheckCircleIcon />
+                                    ) : (
+                                      <CancelIcon />
+                                    )
+                                  }
                                 />
                               </TableCell>
-                              <TableCell>{control.results[0].run_time}s</TableCell>
-                              <TableCell>{new Date(control.results[0].start_time).toLocaleString()}</TableCell>
+                              <TableCell>
+                                {control.results[0].run_time.toFixed(3)}s
+                              </TableCell>
+                              <TableCell>
+                                {new Date(
+                                  control.results[0].start_time
+                                ).toLocaleString()}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -71,11 +121,19 @@ const formatJSON = (data) => {
                 )}
               </Paper>
 
-              <Typography variant="h6" sx={{ marginBottom: 1 }}>Control Code</Typography>
+              <Typography variant="h6" sx={{ marginBottom: 1 }}>
+                Control Code
+              </Typography>
               {profile.controls.map((control) => (
                 <div key={control.id}>
-                  <Typography variant="body2" sx={{ marginBottom: 1 }}>{control.desc}</Typography>
-                  <SyntaxHighlighter language="ruby" style={atomDark} showLineNumbers>
+                  <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                    {control.desc}
+                  </Typography>
+                  <SyntaxHighlighter
+                    language="ruby"
+                    style={atomDark}
+                    showLineNumbers
+                  >
                     {stripTrailingBlankLines(control.code)}
                   </SyntaxHighlighter>
                 </div>
@@ -88,10 +146,87 @@ const formatJSON = (data) => {
   );
 };
 
+const to_results = (data) => {
+  let send_results = {};
+
+  if (data.platform) {
+    send_results.platform = {
+      name: data.platform.name || "",
+      release: data.platform.release || "",
+    };
+  }
+
+  if (data.profiles && Array.isArray(data.profiles)) {
+    send_results.profiles = data.profiles.map((profile) => ({
+      sha256: profile.sha256 || "",
+      title: profile.title || "",
+      controls:
+        profile.controls && Array.isArray(profile.controls)
+          ? profile.controls.map((control) => ({
+              id: control.id || "",
+              title: control.title || "",
+              desc: control.desc || "",
+              code: control.code || "",
+              results:
+                control.results && Array.isArray(control.results)
+                  ? control.results.map((result) => ({
+                      status: result.status || "",
+                      run_time: result.run_time || 0,
+                      start_time: result.start_time || "",
+                    }))
+                  : [],
+            }))
+          : [],
+    }));
+  }
+
+  return send_results;
+};
+
 const JsonDisplay = ({ data }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  // Convert the original data to send_results format
+  const send_results = to_results(data);
+
+  const handleSaveResult = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      // const response = await axios.post('/results/', {
+      //   profile_id: send_results.profiles[0].id, // Assuming we're dealing with the first profile
+      //   result_json: JSON.stringify(send_results)
+      // });
+      // console.log("Result saved successfully:", response.data);
+      // You can add additional logic here, such as showing a success message
+    } catch (error) {
+      console.error("Error saving result:", error);
+      setSaveError("Failed to save result. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div>
-      {formatJSON(data)}
+      {formatJSON(send_results)}
+      <Box mt={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSaveResult}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving..." : "Save Result"}
+        </Button>
+      </Box>
+      {saveError && (
+        <Typography color="error" mt={1}>
+          {saveError}
+        </Typography>
+      )}
     </div>
   );
 };

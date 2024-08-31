@@ -63,8 +63,6 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
         result_data = []
 
         for control in controls:
-            if control.id not in selected_controls:
-                continue
             if control.id in selected_controls:
                 # Create a temporary file to write the InSpec code
                 with tempfile.NamedTemporaryFile(suffix=".rb", delete=False) as temp_file:
@@ -96,7 +94,7 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     
                     # Get the JSON output
                     result_json = process.stdout
-
+                    print(f"Result JSON: {result_json}")
                     db_result = ResultModel(
                         profile_id=profile_id,
                         result_json=result_json  # Store the entire JSON output as a string
@@ -109,9 +107,8 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
 
                 except subprocess.CalledProcessError as e:
                     # Capture stdout even if the command failed (non-zero exit code)
-                    print(f"Error executing control {control.id}: {e}")
                     result_json = e.stdout
-
+                    print(f"Result JSON: {result_json}")
                     # Persist the result in the database
                     db_result = ResultModel(
                         profile_id=profile_id,
@@ -131,9 +128,11 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                         print(f"Failed to delete temporary file {temp_file_path}: {str(e)}")
 
         return {"results": result_data}
+
     except HTTPException as http_exc:
         print(f"HTTPException: {http_exc}")
         raise http_exc
     except Exception as exc:
         print(f"An unexpected error occurred: {exc}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {exc}")
+    

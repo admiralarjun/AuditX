@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import {
   Button,
@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CoPilot from "./CoPilot"; // Assuming you have this component
 
 const ControlAddModal = ({ open, onClose, onAdd }) => {
   const [page, setPage] = useState(1);
@@ -20,6 +21,8 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
   const [impact, setImpact] = useState("");
   const [code, setCode] = useState("");
   const [showNavigation, setShowNavigation] = useState(false);
+  const [editorHeight, setEditorHeight] = useState("400px");
+  const dialogContentRef = useRef(null);
 
   useEffect(() => {
     loader.init().then((monaco) => {
@@ -34,13 +37,31 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
                   'control "my_control_id" do\n  impact 0.5\n  title "Control title"\n  desc "Control description"\n  tag "tag_name"\n  describe ... \nend',
                 documentation: "Defines a control block in InSpec.",
               },
-              // ... (keep other suggestions from the original ControlModal)
+              // ... (keep other suggestions)
             ];
             return { suggestions: suggestions };
           },
         });
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (dialogContentRef.current) {
+        const height = dialogContentRef.current.clientHeight;
+        // Subtracting space for padding and other elements
+        const newEditorHeight = Math.max(height - 150, 200);
+        setEditorHeight(`${newEditorHeight}px`);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const handleSubmit = () => {
@@ -73,7 +94,7 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         style: {
@@ -84,6 +105,7 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
       }}
     >
       <DialogContent
+        ref={dialogContentRef}
         sx={{
           padding: 4,
           backgroundColor: "#f5f5f5",
@@ -136,25 +158,40 @@ const ControlAddModal = ({ open, onClose, onAdd }) => {
             />
           </>
         ) : (
-          <>
-            <Typography variant="h6" sx={{ marginBottom: 3 }}>
-              Control Code
-            </Typography>
-            <Box sx={{ flexGrow: 1 }}>
-              <MonacoEditor
-                height="100%"
-                language="ruby"
-                value={code}
-                onChange={(newValue) => setCode(newValue)}
-                theme="vs-dark"
-                options={{
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  wordWrap: "on",
-                }}
-              />
+          <Box sx={{ display: "flex", height: "calc(100% - 60px)" }}>
+            {/* Left Side - Code Editor */}
+            <Box sx={{ width: "50%", paddingRight: 2 }}>
+              <Typography variant="h6" sx={{ marginBottom: 3 }}>
+                Control Code
+              </Typography>
+              <Box sx={{ height: editorHeight }}>
+                <MonacoEditor
+                  height="100%"
+                  language="ruby"
+                  value={code}
+                  onChange={(newValue) => setCode(newValue)}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                  }}
+                />
+              </Box>
             </Box>
-          </>
+
+            {/* Right Side - AI Integration */}
+            <Box sx={{ width: "50%", paddingLeft: 2, overflow: "auto" }}>
+              <Typography variant="h6" sx={{ marginBottom: 3 }}>
+                AI Code Generation
+              </Typography>
+              <Box sx={{ height: editorHeight, overflow: "auto" }}>
+                <CoPilot
+                  onCodeGenerated={(generatedCode) => setCode(generatedCode)}
+                />
+              </Box>
+            </Box>
+          </Box>
         )}
         <Box
           sx={{

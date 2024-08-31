@@ -1,5 +1,5 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Accordion,
   AccordionDetails,
@@ -8,12 +8,19 @@ import {
   Checkbox,
   CircularProgress,
   Paper,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
-  Typography
-} from '@mui/material';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import JsonDisplay from '../helper/JsonDisplay';
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  TextField,
+  Typography,
+} from "@mui/material";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import JsonDisplay from "../helper/JsonDisplay";
 
 const FileAccordion = ({ fileJson, fileName }) => {
   const [fileData, setFileData] = useState(null);
@@ -21,15 +28,15 @@ const FileAccordion = ({ fileJson, fileName }) => {
   useEffect(() => {
     if (fileJson) {
       setFileData(fileJson);
-      console.log('File data set to state:', fileJson);
+      console.log("File data set to state:", fileJson);
     } else {
-      setFileData({ error: 'No data available for this file' });
+      setFileData({ error: "No data available for this file" });
     }
   }, [fileJson]);
 
   if (!fileData) return <CircularProgress />;
 
-  const isPassed = !JSON.stringify(fileData).includes('failed');
+  const isPassed = !JSON.stringify(fileData).includes("failed");
 
   return (
     <Accordion sx={{ marginBottom: 2 }}>
@@ -37,9 +44,11 @@ const FileAccordion = ({ fileJson, fileName }) => {
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${fileName}-content`}
         id={`panel-${fileName}-header`}
-        sx={{ backgroundColor: isPassed ? 'success.main' : 'error.main' }}
+        sx={{ backgroundColor: isPassed ? "success.main" : "error.main" }}
       >
-        <Typography variant="body1" sx={{ color: 'white' }}>{fileName}</Typography>
+        <Typography variant="body1" sx={{ color: "white" }}>
+          {fileName}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <JsonDisplay data={fileData} />
@@ -55,11 +64,11 @@ const ControlResult = ({ selectedProfile }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('title');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("title");
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = "http://localhost:8000";
 
   const getControls = async (profileId) => {
     const res = await axios.get(`${API_URL}/controls/profile/${profileId}`);
@@ -79,7 +88,7 @@ const ControlResult = ({ selectedProfile }) => {
           }, {});
           setSelectedControls(initialSelectedState);
         } catch (err) {
-          setError('Error fetching controls');
+          setError("Error fetching controls");
         } finally {
           setLoading(false);
         }
@@ -111,8 +120,8 @@ const ControlResult = ({ selectedProfile }) => {
     setFiles([]);
 
     const selectedControlsList = controls
-      .filter(control => selectedControls[control.id])
-      .map(control => control.id);
+      .filter((control) => selectedControls[control.id])
+      .map((control) => control.id);
 
     if (selectedControlsList.length === 0) {
       alert("Select at least 1 control");
@@ -120,11 +129,13 @@ const ControlResult = ({ selectedProfile }) => {
       return;
     }
 
-    const selectedCredentialId = localStorage.getItem('selectedCredential');
-    const selectedCredentialType = localStorage.getItem('selectedCredentialType');
+    const selectedCredentialId = localStorage.getItem("selectedCredential");
+    const selectedCredentialType = localStorage.getItem(
+      "selectedCredentialType"
+    );
 
-    console.log('selectedCredentialMethod', selectedCredentialType);
-    console.log('selectedCredentialId', selectedCredentialId);
+    console.log("selectedCredentialMethod", selectedCredentialType);
+    console.log("selectedCredentialId", selectedCredentialId);
 
     try {
       let full_url = `${API_URL}/execute_controls/${selectedProfile.id}`;
@@ -132,13 +143,26 @@ const ControlResult = ({ selectedProfile }) => {
       const response = await axios.post(full_url, {
         selected_controls: selectedControlsList,
         selectedCredentialId,
-        selectedCredentialType
+        selectedCredentialType,
       });
       const parsedResults = response.data.results.map(result => {
         return JSON.parse(result);
       });
       setFiles(parsedResults);
       setFetched(true);
+
+      // New API call to push fileJson into results - yesterdays i commented out
+      for (const file of parsedResults) {
+        try {
+          await axios.post(`${API_URL}/results/`, {
+            profile_id: selectedProfile.id,
+            result_json: JSON.stringify(file.result_json),
+          });
+          console.log(`Successfully pushed result for control ${file.id}`);
+        } catch (err) {
+          console.error(`Error pushing result for control ${file.id}:`, err);
+        }
+      }
     } catch (err) {
       console.log(err);
       setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
@@ -150,18 +174,18 @@ const ControlResult = ({ selectedProfile }) => {
   useEffect(() => console.log('filer', files), [files]);
 
   const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const filteredControls = controls.filter(control =>
+  const filteredControls = controls.filter((control) =>
     control.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedControls = filteredControls.sort((a, b) => {
-    if (orderBy === 'title') {
-      return order === 'asc'
+    if (orderBy === "title") {
+      return order === "asc"
         ? a.title.localeCompare(b.title)
         : b.title.localeCompare(a.title);
     }
@@ -175,15 +199,19 @@ const ControlResult = ({ selectedProfile }) => {
     <Paper elevation={3} sx={{ padding: 2 }}>
       {!fetched ? (
         <>
-          <Typography variant="h6">Select Controls for {selectedProfile?.name}</Typography>
+          <Typography variant="h6">
+            Select Controls for {selectedProfile?.name}
+          </Typography>
           <TextField
             placeholder="Search controls..."
             variant="outlined"
             size="small"
-            sx={{ marginBottom: 2, width: '100%' }}
+            sx={{ marginBottom: 2, width: "100%" }}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+              startAdornment: (
+                <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+              ),
             }}
           />
           <TableContainer>
@@ -192,15 +220,18 @@ const ControlResult = ({ selectedProfile }) => {
                 <TableRow>
                   <TableCell>
                     <Checkbox
-                      checked={controls.length > 0 && Object.values(selectedControls).every(Boolean)}
+                      checked={
+                        controls.length > 0 &&
+                        Object.values(selectedControls).every(Boolean)
+                      }
                       onChange={handleSelectAll}
                     />
                   </TableCell>
                   <TableCell>
                     <TableSortLabel
-                      active={orderBy === 'title'}
-                      direction={orderBy === 'title' ? order : 'asc'}
-                      onClick={() => handleRequestSort('title')}
+                      active={orderBy === "title"}
+                      direction={orderBy === "title" ? order : "asc"}
+                      onClick={() => handleRequestSort("title")}
                     >
                       Control
                     </TableSortLabel>
@@ -210,7 +241,7 @@ const ControlResult = ({ selectedProfile }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedControls.map(control => (
+                {sortedControls.map((control) => (
                   <TableRow key={control.id}>
                     <TableCell>
                       <Checkbox
@@ -226,13 +257,20 @@ const ControlResult = ({ selectedProfile }) => {
               </TableBody>
             </Table>
           </TableContainer>
-          <Button variant="contained" color="primary" onClick={handleExecute} sx={{ marginTop: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleExecute}
+            sx={{ marginTop: 2 }}
+          >
             Execute Selected Controls
           </Button>
         </>
       ) : (
         <>
-          <Typography variant="h6">Results for {selectedProfile?.name}</Typography>
+          <Typography variant="h6">
+            Results for {selectedProfile?.name}
+          </Typography>
           {files.length > 0 ? (
             files.map((file, index) => (
               <FileAccordion key={index} fileName={`Control ${file.profiles[0].controls[0].id}`} fileJson={file} />

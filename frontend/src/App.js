@@ -9,6 +9,7 @@ import PlatformPage from "./pages/Platform";
 import Profiles from "./pages/Profiles";
 import SSHPage from "./pages/SSHPage";
 import WinRMPage from "./pages/WinRMPage";
+import ReportDisplay from "./pages/Reports";
 
 const App = () => (
   <Router>
@@ -22,6 +23,7 @@ const App = () => (
       <Route path="/winrm_page" element={<WinRMPage />} />
       <Route path="/cis_page" element={<CIS />} />
       <Route path="/platform" element={<PlatformPage />} /> 
+      <Route path="/reports" element={<ReportDisplay />} />
     </Routes>
   </Router>
 );

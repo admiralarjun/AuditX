@@ -1,7 +1,7 @@
-import { Container, Grid } from '@mui/material';
-import React, { useState } from 'react';
-import ControlResult from '../components-db/ControlResultDB';
-import ProfileListViaBackend from '../components-db/ProfileListViaBackend';
+import { Container, Grid } from "@mui/material";
+import React, { useState } from "react";
+import ControlResult from "../components/ControlResultDB";
+import ProfileListViaBackend from "../components/ProfileListViaBackend";
 // import ControlResult from '../components/ControlResult';
 // import ProfileList from '../components/ProfileList';
 
@@ -18,7 +18,9 @@ const Execute = () => {
         </Grid>
         <Grid item xs={12} md={8}>
           {/* {selectedProfile && <ControlResult profile={selectedProfile} />} */}
-          {selectedProfile && ( <ControlResult selectedProfile={selectedProfile} /> )}
+          {selectedProfile && (
+            <ControlResult selectedProfile={selectedProfile} />
+          )}
         </Grid>
       </Grid>
     </Container>

@@ -12,7 +12,8 @@ import { Link } from "react-router-dom";
 import VpnKeyIcon from "@mui/icons-material/VpnKey"; // Import the icon
 import Save from "@mui/icons-material/Save";
 import SecurityIcon from "@mui/icons-material/Security"; // Import CIS Benchmarks Icon
-import MenuBookIcon from "@mui/icons-material/MenuBook"; // knowledge icon
+// knowledge icon
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 const Navbar = () => {
   return (

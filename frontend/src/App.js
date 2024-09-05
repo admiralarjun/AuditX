@@ -22,7 +22,7 @@ const App = () => (
       <Route path="/ssh_page" element={<SSHPage />} />
       <Route path="/winrm_page" element={<WinRMPage />} />
       <Route path="/cis_page" element={<CIS />} />
-      <Route path="/platform" element={<PlatformPage />} /> 
+      <Route path="/platform" element={<PlatformPage />} />
       <Route path="/reports" element={<ReportDisplay />} />
     </Routes>
   </Router>

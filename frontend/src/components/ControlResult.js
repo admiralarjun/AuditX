@@ -1,5 +1,5 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Accordion,
   AccordionDetails,
@@ -8,220 +8,295 @@ import {
   Checkbox,
   CircularProgress,
   Paper,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField,
-  Typography
-} from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { executeControls, executeControlsSSH, getControls, getResult, listFiles } from '../api/api';
-import JsonDisplay from '../helper/JsonDisplay';
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  TextField,
+  Typography,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
+import JsonDisplay from "../helper/JsonDisplay";
 
-const FileAccordion = ({ file, resultsFolder }) => {
+const API_URL = "http://localhost:8000";
+
+const getControls = async (profileId) => {
+  const res = await axios.get(`${API_URL}/controls/profile/${profileId}`);
+  return res.data;
+};
+
+const executeControls = async (profileId, selectedControlsList) => {
+  const selectedCredentialId = localStorage.getItem("selectedCredential");
+  const selectedCredentialType = localStorage.getItem("selectedCredentialType");
+
+  const response = await axios.post(`${API_URL}/execute_controls/${profileId}`, {
+    selected_controls: selectedControlsList,
+    selectedCredentialId,
+    selectedCredentialType,
+  });
+
+  const parsedResults = response.data.results.map(result => JSON.parse(result));
+
+  // Push results to API
+  for (const file of parsedResults) {
+    try {
+      await axios.post(`${API_URL}/results/`, {
+        profile_id: profileId,
+        result_json: JSON.stringify(file.result_json),
+      });
+      console.log(`Successfully pushed result for control ${file.id}`);
+    } catch (err) {
+      console.error(`Error pushing result for control ${file.id}:`, err);
+    }
+  }
+
+  return parsedResults;
+};
+
+const FileAccordion = ({ fileJson, fileName }) => {
   const [fileData, setFileData] = useState(null);
 
   useEffect(() => {
-    const fetchFileData = async () => {
-      try {
-        const response = await getResult(resultsFolder, file);
-        setFileData(response.data);
-      } catch (err) {
-        console.error(err);
-        setFileData({ error: 'Error fetching file details' });
-      }
-    };
-    fetchFileData();
-  }, [file, resultsFolder]);
+    if (fileJson) {
+      setFileData(fileJson);
+      console.log("File data set to state:", fileJson);
+    } else {
+      setFileData({ error: "No data available for this file" });
+    }
+  }, [fileJson]);
 
   if (!fileData) return <CircularProgress />;
 
-  const isPassed = !JSON.stringify(fileData).includes('failed');
+  const isPassed = !JSON.stringify(fileData).includes("failed");
 
   return (
-    <Accordion key={file} sx={{ marginBottom: 2 }}>
+    <Accordion sx={{ marginBottom: 2 }}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls={`panel-${file}-content`}
-        id={`panel-${file}-header`}
-        sx={{ backgroundColor: isPassed ? 'success.main' : 'error.main' }}
+        aria-controls={`panel-${fileName}-content`}
+        id={`panel-${fileName}-header`}
+        sx={{ backgroundColor: isPassed ? "success.main" : "error.main" }}
       >
-        <Typography variant="body1" sx={{ color: 'white' }}>{file}</Typography>
+        <Typography variant="body1" sx={{ color: "white" }}>
+          {fileName}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <JsonDisplay data={fileData}/>
-        {/* <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(fileData, null, 2)}</pre> */}
+        <JsonDisplay data={fileData} />
       </AccordionDetails>
     </Accordion>
   );
 };
 
-const ControlResult = ({ profile }) => {
-  const [controls, setControls] = useState([]);
-  const [selectedControls, setSelectedControls] = useState({});
-  const [resultsFolder, setResultsFolder] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('control');
+const ResultDisplay = ({ files, profileName }) => {
+  return (
+    <>
+      <Typography variant="h6">
+        Results for {profileName}
+      </Typography>
+      {files.length > 0 ? (
+        files.map((file, index) => (
+          <FileAccordion key={index} fileName={`Control ${file.profiles[0].controls[0].id}`} fileJson={file} />
+        ))
+      ) : (
+        <Typography>No results found</Typography>
+      )}
+    </>
+  );
+};
 
-  useEffect(() => {
-    const fetchControls = async () => {
-      try {
-        const response = await getControls(profile);
-        setControls(response.data.controls || []);
-        // Initialize selected controls state
-        const initialSelectedState = (response.data.controls || []).reduce((acc, control) => {
-          acc[control] = false;
-          return acc;
-        }, {});
-        setSelectedControls(initialSelectedState);
-      } catch (err) {
-        console.error(err);
-        setError('Error fetching controls');
-      }
-    };
-    fetchControls();
-  }, [profile]);
+const ControlSelector = ({ controls, selectedControls, setSelectedControls, onExecute }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("title");
 
   const handleSelectAll = (event) => {
     const { checked } = event.target;
-    const newSelectedControls = Object.keys(selectedControls).reduce((acc, control) => {
-      acc[control] = checked;
+    const newSelectedControls = controls.reduce((acc, control) => {
+      acc[control.id] = checked;
       return acc;
     }, {});
     setSelectedControls(newSelectedControls);
   };
 
-  const handleControlChange = (control) => {
+  const handleControlChange = (controlId) => {
     setSelectedControls((prev) => ({
       ...prev,
-      [control]: !prev[control],
+      [controlId]: !prev[controlId],
     }));
   };
 
-  const handleExecute = async () => {
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
+  const filteredControls = controls.filter((control) =>
+    control.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedControls = filteredControls.sort((a, b) => {
+    if (orderBy === "title") {
+      return order === "asc"
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title);
+    }
+    return 0;
+  });
+
+  const handleExecute = () => {
+    const selectedControlsList = controls
+      .filter((control) => selectedControls[control.id])
+      .map((control) => control.id);
+
+    if (selectedControlsList.length === 0) {
+      alert("Select at least 1 control");
+      return;
+    }
+
+    onExecute(selectedControlsList);
+  };
+
+  return (
+    <>
+      <TextField
+        placeholder="Search controls..."
+        variant="outlined"
+        size="small"
+        sx={{ marginBottom: 2, width: "100%" }}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+          ),
+        }}
+      />
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <Checkbox
+                  checked={
+                    controls.length > 0 &&
+                    Object.values(selectedControls).every(Boolean)
+                  }
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === "title"}
+                  direction={orderBy === "title" ? order : "asc"}
+                  onClick={() => handleRequestSort("title")}
+                >
+                  Control
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Impact</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedControls.map((control) => (
+              <TableRow key={control.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedControls[control.id] || false}
+                    onChange={() => handleControlChange(control.id)}
+                  />
+                </TableCell>
+                <TableCell>{control.title}</TableCell>
+                <TableCell>{control.description}</TableCell>
+                <TableCell>{control.impact}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleExecute}
+        sx={{ marginTop: 2 }}
+      >
+        Execute Selected Controls
+      </Button>
+    </>
+  );
+};
+
+const ControlResult = ({ selectedProfile }) => {
+  const [controls, setControls] = useState([]);
+  const [selectedControls, setSelectedControls] = useState({});
+  const [fetched, setFetched] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchControls = async () => {
+      if (selectedProfile && selectedProfile.id) {
+        try {
+          setLoading(true);
+          const data = await getControls(selectedProfile.id);
+          setControls(data || []);
+          const initialSelectedState = (data || []).reduce((acc, control) => {
+            acc[control.id] = false;
+            return acc;
+          }, {});
+          setSelectedControls(initialSelectedState);
+        } catch (err) {
+          setError("Error fetching controls");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchControls();
+  }, [selectedProfile]);
+
+  const handleExecute = async (selectedControlsList) => {
     setLoading(true);
     setError(null);
     setFiles([]);
 
-    const selectedControlsList = Object.keys(selectedControls).filter(control => selectedControls[control]);
-
-    if (selectedControlsList.length === 0) {
-      alert("Select atleast 1 control")
-      setLoading(false);
-      return;
-    }
-
     try {
-      const unParsedDetails = localStorage.getItem('sshCredentials');
-      const sshDetails = JSON.parse(unParsedDetails);
-      const pemFileName = localStorage.getItem('pemFileName');
-      let response;
-
-      if(localStorage.getItem('sshCredentials') === null){
-        response = await executeControls(profile, selectedControlsList);
-      } else {
-        response = await executeControlsSSH(profile, selectedControlsList, sshDetails, pemFileName);
-      }
-      
-      const folderName = response.data.results_folder;
-      setResultsFolder(folderName);
-
-      // Fetch list of files in the results folder
-      const fileListResponse = await listFiles(folderName);
-      setFiles(fileListResponse.data);
-      setLoading(false);
+      const results = await executeControls(selectedProfile.id, selectedControlsList);
+      setFiles(results);
+      setFetched(true);
     } catch (err) {
-      console.error(err);
-      setError('Error executing controls');
+      setError('Error executing controls: ' + (err.response?.data?.detail || err.message));
+    } finally {
       setLoading(false);
     }
   };
-
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const filteredControls = (controls || []).filter(control =>
-    control.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const sortedControls = filteredControls.sort((a, b) => {
-    if (orderBy === 'control') {
-      return order === 'asc'
-        ? a.localeCompare(b)
-        : b.localeCompare(a);
-    }
-    return 0;
-  });
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>
-      {!resultsFolder ? (
+      {!fetched ? (
         <>
-          <Typography variant="h6">Select Controls for {profile}</Typography>
-          <TextField
-            placeholder="Search controls..."
-            variant="outlined"
-            size="small"
-            sx={{ marginBottom: 2, width: '100%' }}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
-            }}
+          <Typography variant="h6">
+            Select Controls for {selectedProfile?.name}
+          </Typography>
+          <ControlSelector
+            controls={controls}
+            selectedControls={selectedControls}
+            setSelectedControls={setSelectedControls}
+            onExecute={handleExecute}
           />
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Checkbox
-                      checked={Object.values(selectedControls).every(Boolean)}
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'control'}
-                      direction={orderBy === 'control' ? order : 'asc'}
-                      onClick={() => handleRequestSort('control')}
-                    >
-                      Control
-                    </TableSortLabel>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedControls.map(control => (
-                  <TableRow key={control}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedControls[control]}
-                        onChange={() => handleControlChange(control)}
-                      />
-                    </TableCell>
-                    <TableCell>{control}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Button variant="contained" color="primary" onClick={handleExecute} sx={{ marginTop: 2 }}>
-            Execute Selected Controls
-          </Button>
         </>
       ) : (
-        <>
-          <Typography variant="h6">Results for {profile}</Typography>
-          {files.length > 0 ? files.map(file => (
-            <FileAccordion key={file} file={file} resultsFolder={resultsFolder} />
-          )) : <Typography>No results found</Typography>}
-        </>
+        <ResultDisplay files={files} profileName={selectedProfile?.name} />
       )}
     </Paper>
   );

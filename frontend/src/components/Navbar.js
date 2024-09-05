@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import VpnKeyIcon from "@mui/icons-material/VpnKey"; // Import the icon
 import Save from "@mui/icons-material/Save";
 import SecurityIcon from "@mui/icons-material/Security"; // Import CIS Benchmarks Icon
-// knowledge icon
+import AssessmentIcon from "@mui/icons-material/Assessment"; // Import Reports Icon
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 const Navbar = () => {
@@ -57,6 +57,14 @@ const Navbar = () => {
             >
               Execute
             </Button>
+            <IconButton
+              color="inherit"
+              component={Link}
+              to="/platform"
+              sx={iconButtonStyles}
+            >
+              <AssessmentIcon /> {/* Reports Icon */}
+            </IconButton>
             {/* Replace SSH Credentials Button with IconButton */}
             <IconButton
               color="inherit"
@@ -69,10 +77,26 @@ const Navbar = () => {
             <IconButton
               color="inherit"
               component={Link}
+              to="/winrm_page"
+              sx={iconButtonStyles}
+            >
+              <SecurityIcon /> {/* Security Icon for WinRM */}
+            </IconButton>
+            <IconButton
+              color="inherit"
+              component={Link}
               to="/cis_page"
               sx={iconButtonStyles}
             >
               <MenuBookIcon /> {/* SSH Key Icon */}
+            </IconButton>
+            <IconButton
+              color="inherit"
+              component={Link}
+              to="/reports"
+              sx={iconButtonStyles}
+            >
+              <AssessmentIcon /> {/* Reports Icon */}
             </IconButton>
           </Box>
         </Container>

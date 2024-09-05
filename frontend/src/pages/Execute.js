@@ -1,6 +1,6 @@
 import { Container, Grid } from "@mui/material";
 import React, { useState } from "react";
-import ControlResult from "../components/ControlResultDB";
+import ControlResult from "../components/ControlResult";
 import ProfileListViaBackend from "../components/ProfileListViaBackend";
 // import ControlResult from '../components/ControlResult';
 // import ProfileList from '../components/ProfileList';

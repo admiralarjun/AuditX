@@ -115,7 +115,7 @@ const WinRMPage = () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
       
-      const response = await axios.get("/winrm_creds/?skip=0&limit=100");
+      const response = await axios.get("/winrm_creds/");
       console.log("WinRM credentials:", response.data);
       setAllCredentials(response.data);
     } catch (error) {
@@ -133,7 +133,7 @@ const WinRMPage = () => {
 
   const saveCredentials = async () => {
     try {
-      axios.defaults.baseURL = "http://localhost:8000";
+      axios.defaults.baseURL = "http://127.0.0.1:8000";
       console.log("Saving WinRM credentials: ", credentials);
       const response = await axios.post("/winrm_creds/", credentials);
 

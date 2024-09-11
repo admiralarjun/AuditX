@@ -10,10 +10,11 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import VpnKeyIcon from "@mui/icons-material/VpnKey"; // Import the icon
-import Save from "@mui/icons-material/Save";
-import SecurityIcon from "@mui/icons-material/Security"; // Import CIS Benchmarks Icon
 import AssessmentIcon from "@mui/icons-material/Assessment"; // Import Reports Icon
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import { Home } from "@mui/icons-material";
+import SearchIcon from "@mui/icons-material/Search";
+import ComputerIcon from "@mui/icons-material/Computer";
 
 const Navbar = () => {
   return (
@@ -37,58 +38,37 @@ const Navbar = () => {
             AuditX
           </Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button color="inherit" component={Link} to="/" sx={buttonStyles}>
-              Home
-            </Button>
-
-            <Button
+            <IconButton
               color="inherit"
               component={Link}
-              to="/profiles"
+              to="/"
               sx={buttonStyles}
             >
-              Profiles
-            </Button>
-            <Button
-              color="inherit"
-              component={Link}
-              to="/execute"
-              sx={buttonStyles}
-            >
-              Execute
-            </Button>
+              <Home />
+            </IconButton>
             <IconButton
               color="inherit"
               component={Link}
               to="/platform"
-              sx={iconButtonStyles}
+              sx={buttonStyles}
             >
-              <AssessmentIcon /> {/* Reports Icon */}
-            </IconButton>
-            {/* Replace SSH Credentials Button with IconButton */}
-            <IconButton
-              color="inherit"
-              component={Link}
-              to="/ssh_page"
-              sx={iconButtonStyles}
-            >
-              <VpnKeyIcon /> {/* SSH Key Icon */}
+              <ComputerIcon />
             </IconButton>
             <IconButton
               color="inherit"
               component={Link}
-              to="/winrm_page"
-              sx={iconButtonStyles}
+              to="/profiles-and-execute"
+              sx={buttonStyles}
             >
-              <SecurityIcon /> {/* Security Icon for WinRM */}
+              <SearchIcon />
             </IconButton>
             <IconButton
               color="inherit"
               component={Link}
-              to="/cis_page"
+              to="/credentials"
               sx={iconButtonStyles}
             >
-              <MenuBookIcon /> {/* SSH Key Icon */}
+              <VpnKeyIcon />
             </IconButton>
             <IconButton
               color="inherit"
@@ -96,7 +76,15 @@ const Navbar = () => {
               to="/reports"
               sx={iconButtonStyles}
             >
-              <AssessmentIcon /> {/* Reports Icon */}
+              <AssessmentIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              component={Link}
+              to="/cis_page"
+              sx={iconButtonStyles}
+            >
+              <MenuBookIcon />
             </IconButton>
           </Box>
         </Container>

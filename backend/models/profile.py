@@ -20,7 +20,6 @@ class Profile(Base):
 
     # Define the relationship to the Platform model
     platform = relationship("Platform", back_populates="profiles")
-
     # Define the relationship to the Attribute model
     attributes = relationship("Attribute", back_populates="profile")
 
@@ -32,3 +31,4 @@ class Profile(Base):
 
     # Define the relationship to the Audit model
     audits = relationship("Audit", back_populates="profile")
+

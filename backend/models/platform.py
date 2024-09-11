@@ -16,3 +16,4 @@ class Platform(Base):
     
     winrm_creds = relationship("WinRMCreds", back_populates="platforms")
     ssh_creds = relationship("SSHCreds", back_populates="platforms")
+    profiles = relationship("Profile", back_populates="platform")

@@ -22,6 +22,7 @@ import {
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { createPlatform, updatePlatform } from '../api/platformApi';
 
 // Styled components (unchanged)
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -152,11 +153,30 @@ const PlatformPage = () => {
 
   const savePlatform = async () => {
     try {
-      axios.defaults.baseURL = 'http://localhost:8000';
+      // Validate input types
+      if (typeof platform.name !== 'string' || platform.name.trim() === '') {
+        throw new Error('Name must be a non-empty string');
+      }
+      if (typeof platform.release !== 'string' || platform.release.trim() === '') {
+        throw new Error('Release must be a non-empty string');
+      }
+      const targetId = parseInt(platform.target_id, 10);
+      if (isNaN(targetId) || targetId <= 0) {
+        throw new Error('Target ID must be a positive integer');
+      }
+
+      const platformData = {
+        name: platform.name.trim(),
+        release: platform.release.trim(),
+        target_id: targetId,
+        winrm_creds_id: platform.winrm_creds_id ? parseInt(platform.winrm_creds_id, 10) : null,
+        ssh_creds_id: platform.ssh_creds_id ? parseInt(platform.ssh_creds_id, 10) : null,
+      };
+
       if (isEditMode) {
-        await axios.put(`/platforms/${selectedPlatform.id}`, platform);
+        await updatePlatform(selectedPlatform.id, platformData);
       } else {
-        await axios.post('/platforms/', platform);
+        await createPlatform(platformData);
       }
       alert(`Platform ${isEditMode ? 'updated' : 'saved'} successfully.`);
       fetchAllPlatforms();

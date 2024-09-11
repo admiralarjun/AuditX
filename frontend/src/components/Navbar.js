@@ -49,6 +49,14 @@ const Navbar = () => {
             <IconButton
               color="inherit"
               component={Link}
+              to="/credentials"
+              sx={iconButtonStyles}
+            >
+              <VpnKeyIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              component={Link}
               to="/platform"
               sx={buttonStyles}
             >
@@ -61,14 +69,6 @@ const Navbar = () => {
               sx={buttonStyles}
             >
               <SearchIcon />
-            </IconButton>
-            <IconButton
-              color="inherit"
-              component={Link}
-              to="/credentials"
-              sx={iconButtonStyles}
-            >
-              <VpnKeyIcon />
             </IconButton>
             <IconButton
               color="inherit"

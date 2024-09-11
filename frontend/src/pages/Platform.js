@@ -1,28 +1,34 @@
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ComputerIcon from '@mui/icons-material/Computer';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ComputerIcon from "@mui/icons-material/Computer";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import LinkIcon from "@mui/icons-material/Link";
 import {
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Container,
-    Fade,
-    IconButton,
-    Modal,
-    Paper,
-    TextField,
-    Typography,
-    Select,
-    MenuItem,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { createPlatform, updatePlatform } from '../api/platformApi';
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Fade,
+  IconButton,
+  Modal,
+  Paper,
+  TextField,
+  Typography,
+  Select,
+  MenuItem,
+  Link,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import {
+  createPlatform,
+  updatePlatform,
+  getPlatforms,
+} from "../api/platformApi";
 
 // Styled components (unchanged)
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -32,62 +38,62 @@ const StyledContainer = styled(Container)(({ theme }) => ({
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   borderRadius: theme.spacing(2),
-  backgroundColor: '#f0f4f8',
+  backgroundColor: "#f0f4f8",
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2),
-  '& .MuiOutlinedInput-root': {
+  "& .MuiOutlinedInput-root": {
     borderRadius: theme.spacing(1),
   },
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: theme.spacing(1),
-  textTransform: 'none',
-  fontWeight: 'bold',
+  textTransform: "none",
+  fontWeight: "bold",
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: 180,
   height: 180,
   borderRadius: theme.spacing(2),
-  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
   flexShrink: 0,
-  cursor: 'pointer',
-  '&:hover': {
-    transform: 'translateY(-5px)',
+  cursor: "pointer",
+  "&:hover": {
+    transform: "translateY(-5px)",
     boxShadow: theme.shadows[4],
   },
 }));
 
 const ScrollContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  overflowX: 'auto',
+  display: "flex",
+  overflowX: "auto",
   gap: theme.spacing(2),
   padding: theme.spacing(2),
-  '&::-webkit-scrollbar': { display: 'none' },
-  scrollbarWidth: 'none',
-  width: '100%',
+  "&::-webkit-scrollbar": { display: "none" },
+  scrollbarWidth: "none",
+  width: "100%",
 }));
 
 const ScrollButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: '50%',
-  transform: 'translateY(-50%)',
-  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  backgroundColor: "rgba(255, 255, 255, 0.7)",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   zIndex: 1,
-  transition: 'opacity 0.3s ease-in-out',
+  transition: "opacity 0.3s ease-in-out",
 }));
 
 const ModalContent = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
   width: 300,
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.spacing(2),
@@ -95,13 +101,31 @@ const ModalContent = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
 }));
 
+const StyledSelect = styled(Select)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  "& .MuiOutlinedInput-root": {
+    borderRadius: theme.spacing(1),
+  },
+}));
+
+const StyledLink = styled(Link)(({ theme }) => ({
+  color: theme.palette.primary.main,
+  textDecoration: "none",
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(0.5),
+  "&:hover": {
+    textDecoration: "underline",
+  },
+}));
+
 const PlatformPage = () => {
   const [platform, setPlatform] = useState({
-    name: '',
-    release: '',
-    target_id: '',
-    winrm_creds_id: '',
-    ssh_creds_id: '',
+    name: "",
+    release: "",
+    target_id: "",
+    winrm_creds_id: "",
+    ssh_creds_id: "",
   });
   const [allPlatforms, setAllPlatforms] = useState([]);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -120,29 +144,29 @@ const PlatformPage = () => {
 
   const fetchAllPlatforms = async () => {
     try {
-      axios.defaults.baseURL = 'http://127.0.0.1:8000';
-      const response = await axios.get('/platforms/');
+      const response = await getPlatforms();
       setAllPlatforms(response.data);
     } catch (error) {
-      console.error('Error fetching platforms:', error);
+      console.error("Error fetching platforms:", error);
+      alert("Failed to fetch platforms. Please try again.");
     }
   };
 
   const fetchWinRMCreds = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/winrm_creds/');
+      const response = await axios.get("http://127.0.0.1:8000/winrm_creds/");
       setWinrmCreds(response.data);
     } catch (error) {
-      console.error('Error fetching WinRM credentials:', error);
+      console.error("Error fetching WinRM credentials:", error);
     }
   };
 
   const fetchSSHCreds = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/ssh_creds/');
+      const response = await axios.get("http://127.0.0.1:8000/ssh_creds/");
       setSshCreds(response.data);
     } catch (error) {
-      console.error('Error fetching SSH credentials:', error);
+      console.error("Error fetching SSH credentials:", error);
     }
   };
 
@@ -154,23 +178,30 @@ const PlatformPage = () => {
   const savePlatform = async () => {
     try {
       // Validate input types
-      if (typeof platform.name !== 'string' || platform.name.trim() === '') {
-        throw new Error('Name must be a non-empty string');
+      if (typeof platform.name !== "string" || platform.name.trim() === "") {
+        throw new Error("Name must be a non-empty string");
       }
-      if (typeof platform.release !== 'string' || platform.release.trim() === '') {
-        throw new Error('Release must be a non-empty string');
+      if (
+        typeof platform.release !== "string" ||
+        platform.release.trim() === ""
+      ) {
+        throw new Error("Release must be a non-empty string");
       }
       const targetId = parseInt(platform.target_id, 10);
       if (isNaN(targetId) || targetId <= 0) {
-        throw new Error('Target ID must be a positive integer');
+        throw new Error("Target ID must be a positive integer");
       }
 
       const platformData = {
         name: platform.name.trim(),
         release: platform.release.trim(),
         target_id: targetId,
-        winrm_creds_id: platform.winrm_creds_id ? parseInt(platform.winrm_creds_id, 10) : null,
-        ssh_creds_id: platform.ssh_creds_id ? parseInt(platform.ssh_creds_id, 10) : null,
+        winrm_creds_id: platform.winrm_creds_id
+          ? parseInt(platform.winrm_creds_id, 10)
+          : null,
+        ssh_creds_id: platform.ssh_creds_id
+          ? parseInt(platform.ssh_creds_id, 10)
+          : null,
       };
 
       if (isEditMode) {
@@ -178,13 +209,26 @@ const PlatformPage = () => {
       } else {
         await createPlatform(platformData);
       }
-      alert(`Platform ${isEditMode ? 'updated' : 'saved'} successfully.`);
+      alert(`Platform ${isEditMode ? "updated" : "saved"} successfully.`);
       fetchAllPlatforms();
-      setPlatform({ name: '', release: '', target_id: '', winrm_creds_id: '', ssh_creds_id: '' });
+      setPlatform({
+        name: "",
+        release: "",
+        target_id: "",
+        winrm_creds_id: "",
+        ssh_creds_id: "",
+      });
       setIsEditMode(false);
     } catch (error) {
-      console.error(`Error ${isEditMode ? 'updating' : 'saving'} platform:`, error);
-      alert(`Failed to ${isEditMode ? 'update' : 'save'} platform. Error: ${error.message}`);
+      console.error(
+        `Error ${isEditMode ? "updating" : "saving"} platform:`,
+        error
+      );
+      alert(
+        `Failed to ${isEditMode ? "update" : "save"} platform. Error: ${
+          error.message
+        }`
+      );
     }
   };
 
@@ -192,8 +236,8 @@ const PlatformPage = () => {
     if (scrollContainerRef.current) {
       const scrollAmount = 200;
       scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
       });
       setIsScrolling(true);
       setTimeout(() => setIsScrolling(false), 1000);
@@ -214,11 +258,11 @@ const PlatformPage = () => {
   const handleDelete = async () => {
     try {
       await axios.delete(`/platforms/${selectedPlatform.id}`);
-      alert('Platform deleted successfully.');
+      alert("Platform deleted successfully.");
       fetchAllPlatforms();
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Error deleting platform:', error);
+      console.error("Error deleting platform:", error);
       alert(`Failed to delete platform. Error: ${error.message}`);
     }
   };
@@ -226,10 +270,14 @@ const PlatformPage = () => {
   return (
     <StyledContainer maxWidth="md">
       <StyledPaper elevation={3}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#34495e', fontWeight: 'bold' }}>
-          {isEditMode ? 'Edit Platform' : 'Add New Platform'}
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{ color: "#34495e", fontWeight: "bold" }}
+        >
+          {isEditMode ? "Edit Platform" : "Add New Platform"}
         </Typography>
-        <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Box component="form" sx={{ display: "flex", flexDirection: "column" }}>
           <StyledTextField
             name="name"
             label="Name"
@@ -237,6 +285,7 @@ const PlatformPage = () => {
             fullWidth
             value={platform.name}
             onChange={handleChange}
+            placeholder="Enter platform name"
           />
           <StyledTextField
             name="release"
@@ -245,6 +294,7 @@ const PlatformPage = () => {
             fullWidth
             value={platform.release}
             onChange={handleChange}
+            placeholder="Enter release version"
           />
           <StyledTextField
             name="target_id"
@@ -253,46 +303,60 @@ const PlatformPage = () => {
             fullWidth
             value={platform.target_id}
             onChange={handleChange}
+            placeholder="Enter target ID"
           />
-          <Select
+          <StyledSelect
             name="winrm_creds_id"
             label="WinRM Credentials"
             value={platform.winrm_creds_id}
             onChange={handleChange}
             fullWidth
-            sx={{ marginBottom: 2 }}
+            displayEmpty
           >
-            <MenuItem value="">None</MenuItem>
+            <MenuItem value="">Select WinRM Credentials</MenuItem>
             {winrmCreds.map((cred) => (
               <MenuItem key={cred.id} value={cred.id}>
                 {cred.winrm_username} - {cred.winrm_hostname}
               </MenuItem>
             ))}
-          </Select>
-          <Select
+          </StyledSelect>
+          <StyledSelect
             name="ssh_creds_id"
             label="SSH Credentials"
             value={platform.ssh_creds_id}
             onChange={handleChange}
             fullWidth
-            sx={{ marginBottom: 2 }}
+            displayEmpty
           >
-            <MenuItem value="">None</MenuItem>
+            <MenuItem value="">Select SSH Credentials</MenuItem>
             {sshCreds.map((cred) => (
               <MenuItem key={cred.id} value={cred.id}>
                 {cred.ssh_username} - {cred.ssh_ip}
               </MenuItem>
             ))}
-          </Select>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, marginTop: 2 }}>
+          </StyledSelect>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+              marginTop: 2,
+            }}
+          >
             {isEditMode && (
               <StyledButton
                 onClick={() => {
                   setIsEditMode(false);
-                  setPlatform({ name: '', release: '', target_id: '', winrm_creds_id: '', ssh_creds_id: '' });
+                  setPlatform({
+                    name: "",
+                    release: "",
+                    target_id: "",
+                    winrm_creds_id: "",
+                    ssh_creds_id: "",
+                  });
                 }}
                 variant="outlined"
-                sx={{ color: '#e74c3c', borderColor: '#e74c3c' }}
+                sx={{ color: "#e74c3c", borderColor: "#e74c3c" }}
               >
                 Cancel
               </StyledButton>
@@ -302,19 +366,19 @@ const PlatformPage = () => {
               variant="contained"
               startIcon={<SaveIcon />}
               sx={{
-                backgroundColor: '#2ecc71',
-                '&:hover': { backgroundColor: '#27ae60' },
+                backgroundColor: "#2ecc71",
+                "&:hover": { backgroundColor: "#27ae60" },
               }}
             >
-              {isEditMode ? 'Update' : 'Save'}
+              {isEditMode ? "Update" : "Save"}
             </StyledButton>
           </Box>
         </Box>
       </StyledPaper>
 
-      <Box sx={{ position: 'relative', marginTop: 3 }}>
+      <Box sx={{ position: "relative", marginTop: 3 }}>
         <ScrollButton
-          onClick={() => handleScroll('left')}
+          onClick={() => handleScroll("left")}
           sx={{ left: -20, opacity: isScrolling ? 1 : 0 }}
         >
           <ChevronLeftIcon />
@@ -324,28 +388,30 @@ const PlatformPage = () => {
             <StyledCard key={plat.id} onClick={() => handleCardClick(plat)}>
               <CardContent
                 sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
                 }}
               >
                 <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'left',
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "left",
                     marginBottom: 1,
                   }}
                 >
-                  <ComputerIcon sx={{ color: '#3498db', fontSize: 30, marginBottom: 1 }} />
+                  <ComputerIcon
+                    sx={{ color: "#3498db", fontSize: 30, marginBottom: 1 }}
+                  />
                   <Typography
                     variant="h6"
                     sx={{
-                      color: '#34495e',
+                      color: "#34495e",
                       fontSize: 16,
-                      fontWeight: 'bold',
-                      textAlign: 'left',
+                      fontWeight: "bold",
+                      textAlign: "left",
                     }}
                   >
                     {plat.name}
@@ -354,11 +420,11 @@ const PlatformPage = () => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#7f8c8d',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    textAlign: 'left',
+                    color: "#7f8c8d",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textAlign: "left",
                   }}
                 >
                   Release: {plat.release}
@@ -366,11 +432,11 @@ const PlatformPage = () => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#7f8c8d',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    textAlign: 'left',
+                    color: "#7f8c8d",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textAlign: "left",
                   }}
                 >
                   Target ID: {plat.target_id}
@@ -380,13 +446,14 @@ const PlatformPage = () => {
           ))}
         </ScrollContainer>
         <ScrollButton
-          onClick={() => handleScroll('right')}
+          onClick={() => handleScroll("right")}
           sx={{ right: -20, opacity: isScrolling ? 1 : 0 }}
         >
           <ChevronRightIcon />
         </ScrollButton>
       </Box>
 
+      {/* Modal for Platform Details */}
       <Modal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -394,26 +461,56 @@ const PlatformPage = () => {
       >
         <Fade in={isModalOpen}>
           <ModalContent>
-            <Typography variant="h5" component="h2" sx={{ color: '#34495e', fontWeight: 'bold', marginBottom: 2 }}>
+            <Typography
+              variant="h5"
+              component="h2"
+              sx={{ color: "#34495e", fontWeight: "bold", marginBottom: 2 }}
+            >
               Platform Details
             </Typography>
-            <Typography sx={{ color: '#7f8c8d', marginBottom: 1 }}>
+            <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
               Name: {selectedPlatform?.name}
             </Typography>
-            <Typography sx={{ color: '#7f8c8d', marginBottom: 1 }}>
+            <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
               Release: {selectedPlatform?.release}
             </Typography>
-            <Typography sx={{ color: '#7f8c8d', marginBottom: 2 }}>
+            <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
               Target ID: {selectedPlatform?.target_id}
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            {selectedPlatform?.winrm_creds_id && (
+              <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
+                WinRM Credentials:
+                <StyledLink
+                  href={`/winrm_creds/${selectedPlatform.winrm_creds_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <LinkIcon fontSize="small" />
+                  View Details
+                </StyledLink>
+              </Typography>
+            )}
+            {selectedPlatform?.ssh_creds_id && (
+              <Typography sx={{ color: "#7f8c8d", marginBottom: 2 }}>
+                SSH Credentials:
+                <StyledLink
+                  href={`/ssh_creds/${selectedPlatform.ssh_creds_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <LinkIcon fontSize="small" />
+                  View Details
+                </StyledLink>
+              </Typography>
+            )}
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <StyledButton
                 onClick={handleEdit}
                 variant="contained"
                 startIcon={<EditIcon />}
                 sx={{
-                  backgroundColor: '#3498db',
-                  '&:hover': { backgroundColor: '#2980b9' },
+                  backgroundColor: "#3498db",
+                  "&:hover": { backgroundColor: "#2980b9" },
                 }}
               >
                 Edit
@@ -423,8 +520,8 @@ const PlatformPage = () => {
                 variant="contained"
                 startIcon={<DeleteIcon />}
                 sx={{
-                  backgroundColor: '#e74c3c',
-                  '&:hover': { backgroundColor: '#c0392b' },
+                  backgroundColor: "#e74c3c",
+                  "&:hover": { backgroundColor: "#c0392b" },
                 }}
               >
                 Delete

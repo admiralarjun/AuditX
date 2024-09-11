@@ -2,7 +2,15 @@ import axios from "axios";
 
 import { apiurl } from "./api";
 
-export const getPlatforms = () => axios.get(`${apiurl()}/platforms/`);
+export const getPlatforms = async () => {
+  try {
+    const response = await axios.get(`${apiurl()}/platforms/`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching platforms:', error);
+    throw error;
+  }
+};
 
 export const createPlatform = async (platformData) => {
   try {

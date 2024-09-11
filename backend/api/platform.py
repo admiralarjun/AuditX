@@ -52,8 +52,11 @@ def read_platform(platform_id: int, db: Session = Depends(get_db)):
 
 @router.get("/platforms/", response_model=List[PlatformRead])
 def get_all_platforms(db: Session = Depends(get_db)):
-    platforms = db.query(PlatformModel).all()
-    return platforms
+    try:
+        platforms = db.query(PlatformModel).all()
+        return platforms
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while fetching platforms: {str(e)}")
 
 @router.put("/platforms/{platform_id}", response_model=PlatformRead)
 def update_platform(platform_id: int, platform: PlatformUpdate, db: Session = Depends(get_db)):

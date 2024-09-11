@@ -16,8 +16,13 @@ class PlatformCreate(BaseModel):
             raise ValueError("Must be a non-empty string")
         return v.strip()
 
-class PlatformRead(PlatformCreate):
+class PlatformRead(BaseModel):
     id: int
+    name: str
+    release: str
+    target_id: int
+    winrm_creds_id: Optional[int] = None
+    ssh_creds_id: Optional[int] = None
 
     class Config:
         orm_mode = True

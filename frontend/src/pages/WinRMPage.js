@@ -13,6 +13,8 @@ import {
   Fade,
   Switch,
   FormControlLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
@@ -106,9 +108,12 @@ const WinRMPage = () => {
   const [selectedCredential, setSelectedCredential] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = useRef(null);
+  const [platforms, setPlatforms] = useState([]);
+  const [selectedPlatform, setSelectedPlatform] = useState("");
 
   useEffect(() => {
     fetchAllCredentials();
+    fetchPlatforms();
   }, []);
 
   const fetchAllCredentials = async () => {
@@ -120,6 +125,15 @@ const WinRMPage = () => {
       setAllCredentials(response.data);
     } catch (error) {
       console.error("Error fetching WinRM credentials:", error);
+    }
+  };
+
+  const fetchPlatforms = async () => {
+    try {
+      const response = await axios.get("/api/platforms/");
+      setPlatforms(response.data);
+    } catch (error) {
+      console.error("Error fetching platforms:", error);
     }
   };
 
@@ -135,7 +149,11 @@ const WinRMPage = () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
       console.log("Saving WinRM credentials: ", credentials);
-      const response = await axios.post("/winrm_creds/", credentials);
+      const data = {
+        ...credentials,
+        platform_id: selectedPlatform
+      };
+      const response = await axios.post("/winrm_creds/", data);
 
       if (response.data) {
         alert("WinRM credentials saved successfully.");
@@ -147,6 +165,7 @@ const WinRMPage = () => {
           winrm_port: 5986,
           use_ssl: true,
         });
+        setSelectedPlatform("");
       } else {
         alert("Failed to save WinRM credentials.");
       }
@@ -235,6 +254,18 @@ const WinRMPage = () => {
             }
             label="Use SSL"
           />
+          <Select
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+            displayEmpty
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            <MenuItem value="" disabled>Select a platform</MenuItem>
+            {platforms.map((platform) => (
+              <MenuItem key={platform.id} value={platform.id}>{platform.name}</MenuItem>
+            ))}
+          </Select>
           <Box
             sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}
           >

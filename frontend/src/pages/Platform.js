@@ -16,6 +16,8 @@ import {
     Paper,
     TextField,
     Typography,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
@@ -97,16 +99,22 @@ const PlatformPage = () => {
     name: '',
     release: '',
     target_id: '',
+    winrm_creds_id: '',
+    ssh_creds_id: '',
   });
   const [allPlatforms, setAllPlatforms] = useState([]);
   const [isScrolling, setIsScrolling] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [winrmCreds, setWinrmCreds] = useState([]);
+  const [sshCreds, setSshCreds] = useState([]);
   const scrollContainerRef = React.useRef(null);
 
   useEffect(() => {
     fetchAllPlatforms();
+    fetchWinRMCreds();
+    fetchSSHCreds();
   }, []);
 
   const fetchAllPlatforms = async () => {
@@ -116,6 +124,24 @@ const PlatformPage = () => {
       setAllPlatforms(response.data);
     } catch (error) {
       console.error('Error fetching platforms:', error);
+    }
+  };
+
+  const fetchWinRMCreds = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/winrm_creds/');
+      setWinrmCreds(response.data);
+    } catch (error) {
+      console.error('Error fetching WinRM credentials:', error);
+    }
+  };
+
+  const fetchSSHCreds = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/ssh_creds/');
+      setSshCreds(response.data);
+    } catch (error) {
+      console.error('Error fetching SSH credentials:', error);
     }
   };
 
@@ -134,7 +160,7 @@ const PlatformPage = () => {
       }
       alert(`Platform ${isEditMode ? 'updated' : 'saved'} successfully.`);
       fetchAllPlatforms();
-      setPlatform({ name: '', release: '', target_id: '' });
+      setPlatform({ name: '', release: '', target_id: '', winrm_creds_id: '', ssh_creds_id: '' });
       setIsEditMode(false);
     } catch (error) {
       console.error(`Error ${isEditMode ? 'updating' : 'saving'} platform:`, error);
@@ -208,12 +234,42 @@ const PlatformPage = () => {
             value={platform.target_id}
             onChange={handleChange}
           />
+          <Select
+            name="winrm_creds_id"
+            label="WinRM Credentials"
+            value={platform.winrm_creds_id}
+            onChange={handleChange}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            <MenuItem value="">None</MenuItem>
+            {winrmCreds.map((cred) => (
+              <MenuItem key={cred.id} value={cred.id}>
+                {cred.winrm_username} - {cred.winrm_hostname}
+              </MenuItem>
+            ))}
+          </Select>
+          <Select
+            name="ssh_creds_id"
+            label="SSH Credentials"
+            value={platform.ssh_creds_id}
+            onChange={handleChange}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            <MenuItem value="">None</MenuItem>
+            {sshCreds.map((cred) => (
+              <MenuItem key={cred.id} value={cred.id}>
+                {cred.ssh_username} - {cred.ssh_ip}
+              </MenuItem>
+            ))}
+          </Select>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, marginTop: 2 }}>
             {isEditMode && (
               <StyledButton
                 onClick={() => {
                   setIsEditMode(false);
-                  setPlatform({ name: '', release: '', target_id: '' });
+                  setPlatform({ name: '', release: '', target_id: '', winrm_creds_id: '', ssh_creds_id: '' });
                 }}
                 variant="outlined"
                 sx={{ color: '#e74c3c', borderColor: '#e74c3c' }}

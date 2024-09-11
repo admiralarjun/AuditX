@@ -15,6 +15,8 @@ import {
   Paper,
   TextField,
   Typography,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
@@ -105,9 +107,12 @@ const SSHCredentialsPage = () => {
   const [selectedCredential, setSelectedCredential] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = useRef(null);
+  const [platforms, setPlatforms] = useState([]);
+  const [selectedPlatform, setSelectedPlatform] = useState("");
 
   useEffect(() => {
     fetchAllCredentials();
+    fetchPlatforms();
   }, []);
 
   const fetchAllCredentials = async () => {
@@ -117,6 +122,15 @@ const SSHCredentialsPage = () => {
       setAllCredentials(response.data);
     } catch (error) {
       console.error("Error fetching SSH credentials:", error);
+    }
+  };
+
+  const fetchPlatforms = async () => {
+    try {
+      const response = await axios.get("/api/platforms/");
+      setPlatforms(response.data);
+    } catch (error) {
+      console.error("Error fetching platforms:", error);
     }
   };
 
@@ -141,6 +155,9 @@ const SSHCredentialsPage = () => {
     if (pemFile) {
       formData.append("pem_file", pemFile);
     }
+    if (selectedPlatform) {
+      formData.append("platform_id", selectedPlatform);
+    }
 
     try {
       axios.defaults.baseURL = "http://localhost:8000";
@@ -156,6 +173,7 @@ const SSHCredentialsPage = () => {
         setCredentials({ ssh_username: "", ssh_ip: "", ssh_password: "" });
         setPemFileName("Upload PEM File");
         setPemFile(null);
+        setSelectedPlatform("");
       } else {
         alert("Failed to save SSH credentials.");
       }
@@ -226,6 +244,18 @@ const SSHCredentialsPage = () => {
             value={credentials.ssh_password}
             onChange={handleChange}
           />
+          <Select
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+            displayEmpty
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            <MenuItem value="" disabled>Select a platform</MenuItem>
+            {platforms.map((platform) => (
+              <MenuItem key={platform.id} value={platform.id}>{platform.name}</MenuItem>
+            ))}
+          </Select>
           <Box
             sx={{
               display: "flex",

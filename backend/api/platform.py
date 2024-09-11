@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.platform import Platform as PlatformModel
+from models.winrm_creds import WinRMCreds
+from models.ssh_creds import SSHCreds
 from schemas.platform import PlatformCreate, PlatformRead, PlatformUpdate
 from typing import List
 
@@ -17,7 +19,14 @@ def get_db():
 
 @router.post("/platforms/", response_model=PlatformRead)
 def create_platform(platform: PlatformCreate, db: Session = Depends(get_db)):
-    db_platform = PlatformModel(**platform.dict())
+    db_platform = PlatformModel(
+        name=platform.name,
+        release=platform.release,
+        target_id=platform.target_id,
+        winrm_creds_id=platform.winrm_creds_id,
+        ssh_creds_id=platform.ssh_creds_id
+    )
+    
     db.add(db_platform)
     db.commit()
     db.refresh(db_platform)

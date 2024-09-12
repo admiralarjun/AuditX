@@ -1,5 +1,5 @@
 # models/platform.py
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from db import Base
 
@@ -11,9 +11,4 @@ class Platform(Base):
     release = Column(String)
     target_id = Column(Integer)
     
-    winrm_creds_id = Column(Integer, ForeignKey('winrm_creds.id'), nullable=True)
-    ssh_creds_id = Column(Integer, ForeignKey('ssh_creds.id'), nullable=True)
-    
-    winrm_creds = relationship("WinRMCreds", back_populates="platforms")
-    ssh_creds = relationship("SSHCreds", back_populates="platforms")
     profiles = relationship("Profile", back_populates="platform")

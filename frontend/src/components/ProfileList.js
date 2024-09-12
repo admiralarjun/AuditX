@@ -1,17 +1,17 @@
 // ProfileList.js
 import {
   Box,
+  Button,
   CircularProgress,
   List,
   ListItem,
   ListItemText,
   Paper,
   Typography,
-  Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import ProfileAddModal from "./ProfileAddModal";
 import { getProfiles } from "../api/profileBackendApi";
+import ProfileAddModal from "./ProfileAddModal";
 
 const ProfileList = ({ onSelectProfile }) => {
   const [profiles, setProfiles] = useState([]);
@@ -36,7 +36,7 @@ const ProfileList = ({ onSelectProfile }) => {
     };
 
     fetchProfiles();
-  }, []);
+  }, [onSelectProfile]);
 
   const handleProfileClick = (profile) => {
     setSelectedProfile(profile);

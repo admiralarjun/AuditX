@@ -24,20 +24,20 @@ async def create_ssh_creds(
     ssh_username: str = Form(...),
     ssh_password: str = Form(None),
     ssh_ip: str = Form(...),
-    profile_id: int = Form(None),
+    # profile_id: int = Form(None),
     pem_file: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    if profile_id:
-        profile = db.query(Profile).filter(Profile.id == profile_id).first()
-        if not profile:
-            raise HTTPException(status_code=404, detail="Profile not found")
+    # if profile_id:
+    #     # profile = db.query(Profile).filter(Profile.id == profile_id).first()
+    #     if not profile:
+    #         raise HTTPException(status_code=404, detail="Profile not found")
 
     db_ssh_creds = SSHCredsModel(
         ssh_username=ssh_username,
         ssh_password=ssh_password,
         ssh_ip=ssh_ip,
-        profile_id=profile_id
+        # profile_id=profile_id
     )
 
     if pem_file:

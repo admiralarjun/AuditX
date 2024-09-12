@@ -1,5 +1,6 @@
 # models/ssh_creds.py
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from db import Base
 
 class SSHCreds(Base):
@@ -10,3 +11,5 @@ class SSHCreds(Base):
     ssh_password = Column(String, nullable=True)
     ssh_pem_path = Column(String, nullable=True)
     ssh_ip = Column(String, nullable=False)
+
+    platforms = relationship("Platform", back_populates="ssh_creds")

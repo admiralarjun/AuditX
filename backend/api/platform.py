@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.platform import Platform as PlatformModel
-from schemas.platform import PlatformCreate, PlatformRead, PlatformUpdate
-from typing import List
+from models.winrm_creds import WinRMCreds
+from models.ssh_creds import SSHCreds
+from schemas.platform import PlatformRead, PlatformUpdate
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -16,12 +18,30 @@ def get_db():
         db.close()
 
 @router.post("/platforms/", response_model=PlatformRead)
-def create_platform(platform: PlatformCreate, db: Session = Depends(get_db)):
-    db_platform = PlatformModel(**platform.dict())
-    db.add(db_platform)
-    db.commit()
-    db.refresh(db_platform)
-    return db_platform
+def create_platform(
+    name: str = Form(...),
+    release: str = Form(...),
+    target_id: int = Form(...),
+    winrm_creds_id: Optional[int] = Form(None),
+    ssh_creds_id: Optional[int] = Form(None),
+    db: Session = Depends(get_db)
+):
+    try:
+        db_platform = PlatformModel(
+            name=name,
+            release=release,
+            target_id=target_id,
+            winrm_creds_id=winrm_creds_id,
+            ssh_creds_id=ssh_creds_id
+        )
+        
+        db.add(db_platform)
+        db.commit()
+        db.refresh(db_platform)
+        return db_platform
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/platforms/{platform_id}", response_model=PlatformRead)
 def read_platform(platform_id: int, db: Session = Depends(get_db)):
@@ -32,8 +52,11 @@ def read_platform(platform_id: int, db: Session = Depends(get_db)):
 
 @router.get("/platforms/", response_model=List[PlatformRead])
 def get_all_platforms(db: Session = Depends(get_db)):
-    platforms = db.query(PlatformModel).all()
-    return platforms
+    try:
+        platforms = db.query(PlatformModel).all()
+        return platforms
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while fetching platforms: {str(e)}")
 
 @router.put("/platforms/{platform_id}", response_model=PlatformRead)
 def update_platform(platform_id: int, platform: PlatformUpdate, db: Session = Depends(get_db)):

@@ -10,7 +10,7 @@ import {
   Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import ProfileAddModal from './ProfileAddModal';
+import ProfileAddModal from "./ProfileAddModal";
 import { getProfiles } from "../api/profileBackendApi";
 
 const ProfileList = ({ onSelectProfile }) => {
@@ -83,7 +83,12 @@ const ProfileList = ({ onSelectProfile }) => {
       <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>
         Profiles
       </Typography>
-      <Button variant="contained" color="primary" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setModalOpen(true)}
+        sx={{ mb: 2 }}
+      >
         Add New Profile
       </Button>
       {profiles.length === 0 ? (
@@ -124,7 +129,11 @@ const ProfileList = ({ onSelectProfile }) => {
           ))}
         </List>
       )}
-      <ProfileAddModal open={isModalOpen} onClose={() => setModalOpen(false)} onProfileAdded={handleAddProfile} />
+      <ProfileAddModal
+        open={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        onProfileAdded={handleAddProfile}
+      />
     </Paper>
   );
 };

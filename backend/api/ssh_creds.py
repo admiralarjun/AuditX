@@ -7,6 +7,7 @@ from schemas.ssh_creds import SSHCredsRead, SSHCredsCreate, SSHCredsUpdate
 import os
 import uuid
 from typing import List
+from models.platform import Platform
 
 router = APIRouter()
 
@@ -21,15 +22,22 @@ def get_db():
 @router.post("/ssh_creds/", response_model=SSHCredsRead)
 async def create_ssh_creds(
     ssh_username: str = Form(...),
-    ssh_ip: str = Form(...),
     ssh_password: str = Form(None),
-    db: Session = Depends(get_db),
-    pem_file: UploadFile = File(None)
+    ssh_ip: str = Form(...),
+    platform_id: int = Form(None),
+    pem_file: UploadFile = File(None),
+    db: Session = Depends(get_db)
 ):
+    if platform_id:
+        platform = db.query(Platform).filter(Platform.id == platform_id).first()
+        if not platform:
+            raise HTTPException(status_code=404, detail="Platform not found")
+
     db_ssh_creds = SSHCredsModel(
         ssh_username=ssh_username,
+        ssh_password=ssh_password,
         ssh_ip=ssh_ip,
-        ssh_password=ssh_password
+        platform_id=platform_id
     )
 
     if pem_file:

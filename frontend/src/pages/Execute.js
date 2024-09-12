@@ -1,29 +1,32 @@
-import { Container, Grid } from "@mui/material";
-import React, { useState } from "react";
-import ControlResult from "../components/ControlResult";
-import ProfileListViaBackend from "../components/ProfileListViaBackend";
-// import ControlResult from '../components/ControlResult';
-// import ProfileList from '../components/ProfileList';
+import React from "react";
+import { Button, Box, Typography, useTheme } from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
-const Execute = () => {
-  const [selectedProfile, setSelectedProfile] = useState(null);
-  console.log("selectedProfile", selectedProfile);
+const Execute = ({ onExecute }) => {
+  const theme = useTheme();
 
   return (
-    <Container>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          {/* <ProfileList onSelectProfile={setSelectedProfile} /> */}
-          <ProfileListViaBackend onSelectProfile={setSelectedProfile} />
-        </Grid>
-        <Grid item xs={12} md={8}>
-          {/* {selectedProfile && <ControlResult profile={selectedProfile} />} */}
-          {selectedProfile && (
-            <ControlResult selectedProfile={selectedProfile} />
-          )}
-        </Grid>
-      </Grid>
-    </Container>
+    <Box
+      sx={{
+        p: 2,
+        backgroundColor: theme.palette.background.paper,
+        borderRadius: theme.shape.borderRadius,
+        border: `1px solid ${theme.palette.divider}`,
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        Execute Profile
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<PlayArrowIcon />}
+        onClick={onExecute}
+        sx={{ boxShadow: "none" }}
+      >
+        Execute
+      </Button>
+    </Box>
   );
 };
 

@@ -5,6 +5,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import SearchIcon from "@mui/icons-material/Search";
 import WarningIcon from "@mui/icons-material/Warning";
 import {
+  Box,
   Button,
   Chip,
   CircularProgress,
@@ -19,6 +20,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -62,6 +64,8 @@ const ControlsList = ({ selectedProfile }) => {
   const [editingControl, setEditingControl] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
+
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchControls = async () => {
@@ -163,29 +167,45 @@ const ControlsList = ({ selectedProfile }) => {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Paper elevation={3} sx={{ padding: 2 }}>
-      <Typography variant="h6">Controls for {selectedProfile.name}</Typography>
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => setAddModalOpen(true)}
-        sx={{ marginBottom: 2 }}
-      >
-        Add Control
-      </Button>
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => setAddModalOpen(true)}
-        sx={{ marginBottom: 2 }}
-      >
-        Add Templated Control
-      </Button>
+    <Paper elevation={3} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+      <Typography variant="h5" sx={{ mb: 3, color: theme.palette.primary.main, fontWeight: 'bold' }}>
+        Controls for {selectedProfile.name}
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setAddModalOpen(true)}
+          sx={{
+            backgroundColor: theme.palette.secondary.main,
+            '&:hover': {
+              backgroundColor: theme.palette.secondary.dark,
+            },
+          }}
+        >
+          Add Control
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<AddIcon />}
+          onClick={() => setAddModalOpen(true)}
+          sx={{
+            borderColor: theme.palette.secondary.main,
+            color: theme.palette.secondary.main,
+            '&:hover': {
+              borderColor: theme.palette.secondary.dark,
+              color: theme.palette.secondary.dark,
+            },
+          }}
+        >
+          Add Templated Control
+        </Button>
+      </Box>
       <TextField
         placeholder="Search controls..."
         variant="outlined"
         size="small"
-        sx={{ marginBottom: 2, width: "100%" }}
+        sx={{ mb: 3, width: "100%" }}
         onChange={(e) => setSearchQuery(e.target.value)}
         InputProps={{
           startAdornment: <SearchIcon sx={{ color: "action.active", mr: 1 }} />,
@@ -259,6 +279,14 @@ const ControlsList = ({ selectedProfile }) => {
                     variant="outlined"
                     startIcon={<EditIcon />}
                     onClick={() => handleEditControl(control.id)}
+                    sx={{
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.dark,
+                        color: theme.palette.primary.dark,
+                      },
+                    }}
                   >
                     Edit
                   </Button>

@@ -1,8 +1,8 @@
+import { Box, Paper, Tab, Tabs } from "@mui/material";
 import React, { useState } from "react";
-import { Container, Grid, Tabs, Tab } from "@mui/material";
-import ProfileList from "../components/ProfileList";
-import ControlsList from "../components/ControlsList";
 import ControlResult from "../components/ControlResult";
+import ControlsList from "../components/ControlsList";
+import ProfileList from "../components/ProfileList";
 
 const Audit = () => {
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -13,30 +13,48 @@ const Audit = () => {
   };
 
   return (
-    <Container>
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}> {/* Adjust 64px if your top bar height is different */}
+      <Box sx={{ width: 300, borderRight: '1px solid rgba(0, 0, 0, 0.12)', overflowY: 'auto' }}>
+        <ProfileList onSelectProfile={setSelectedProfile} />
+      </Box>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-        centered
-        sx={{ marginBottom: 2 }}
-      >
-        <Tab label="Profiles" />
-        <Tab label="Audit" />
-      </Tabs>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          <ProfileList onSelectProfile={setSelectedProfile} />
-        </Grid>
-        <Grid item xs={12} md={8}>
-          {selectedProfile && tabValue === 0 && (
+          value={tabValue}
+          onChange={handleTabChange}
+          sx={{
+            minHeight: 'auto',
+            '& .MuiTabs-indicator': {
+              display: 'none',
+            },
+            '& .MuiTab-root': {
+              minHeight: 'auto',
+              py: 1,
+              px: 2,
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderBottom: 'none',
+              '&.Mui-selected': {
+                bgcolor: '#f5f5f5',
+                fontWeight: 'bold',
+              },
+            },
+          }}
+        >
+          <Tab label="Profiles" />
+          <Tab label="Audit" />
+        </Tabs>
+        <Paper sx={{ flexGrow: 1, overflowY: 'auto', borderRadius: 0 }}>
+          {tabValue === 0 && selectedProfile && (
             <ControlsList selectedProfile={selectedProfile} />
           )}
-          {selectedProfile && tabValue === 1 && (
+          {tabValue === 1 && selectedProfile && (
             <ControlResult selectedProfile={selectedProfile} />
           )}
-        </Grid>
-      </Grid>
-    </Container>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

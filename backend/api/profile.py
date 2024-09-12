@@ -1,7 +1,7 @@
 # api/profile.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from db import SessionLocal
 from models.profile import Profile as ProfileModel
 from schemas.profile import ProfileCreate, ProfileRead, ProfileUpdate
@@ -17,17 +17,37 @@ def get_db():
         db.close()
 
 @router.post("/profiles/", response_model=ProfileRead)
-def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
-    db_profile = ProfileModel(**profile.dict())
-    db.add(db_profile)
-    db.commit()
-    db.refresh(db_profile)
-    return db_profile
+def create_profile(
+    platform_id: int = Form(...),
+    name: str = Form(...),
+    winrm_creds_id: Optional[int] = Form(None),
+    ssh_creds_id: Optional[int] = Form(None),
+    db: Session = Depends(get_db)
+):
+    try:
+        db_profile = ProfileModel(
+            platform_id=platform_id,
+            name=name,
+            winrm_creds_id=winrm_creds_id,
+            ssh_creds_id=ssh_creds_id
+        )
+        
+        db.add(db_profile)
+        db.commit()
+        db.refresh(db_profile)
+        return db_profile
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/profiles/", response_model=List[ProfileRead])
 def read_profiles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    profiles = db.query(ProfileModel).offset(skip).limit(limit).all()
-    return profiles
+    try:
+        profiles = db.query(ProfileModel).offset(skip).limit(limit).all()
+        return profiles
+    except Exception as e:
+        print(f"Error fetching profiles: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("/profiles/{profile_id}", response_model=ProfileRead)
 def read_profile(profile_id: int, db: Session = Depends(get_db)):
@@ -37,13 +57,27 @@ def read_profile(profile_id: int, db: Session = Depends(get_db)):
     return profile
 
 @router.put("/profiles/{profile_id}", response_model=ProfileRead)
-def update_profile(profile_id: int, profile: ProfileUpdate, db: Session = Depends(get_db)):
+def update_profile(
+    profile_id: int,
+    platform_id: Optional[int] = Form(None),
+    name: Optional[str] = Form(None),
+    winrm_creds_id: Optional[int] = Form(None),
+    ssh_creds_id: Optional[int] = Form(None),
+    db: Session = Depends(get_db)
+):
     db_profile = db.query(ProfileModel).filter(ProfileModel.id == profile_id).first()
     if db_profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    for key, value in profile.dict(exclude_unset=True).items():
-        setattr(db_profile, key, value)
+    update_data = {
+        "platform_id": platform_id,
+        "name": name,
+        "winrm_creds_id": winrm_creds_id,
+        "ssh_creds_id": ssh_creds_id
+    }
+    for key, value in update_data.items():
+        if value is not None:
+            setattr(db_profile, key, value)
     
     db.commit()
     db.refresh(db_profile)

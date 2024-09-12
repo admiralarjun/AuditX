@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from db import SessionLocal
 from models.platform import Platform as PlatformModel
-from models.winrm_creds import WinRMCreds
-from models.ssh_creds import SSHCreds
 from schemas.platform import PlatformRead, PlatformUpdate
 from typing import List, Optional
 
@@ -22,17 +20,13 @@ def create_platform(
     name: str = Form(...),
     release: str = Form(...),
     target_id: int = Form(...),
-    winrm_creds_id: Optional[int] = Form(None),
-    ssh_creds_id: Optional[int] = Form(None),
     db: Session = Depends(get_db)
 ):
     try:
         db_platform = PlatformModel(
             name=name,
             release=release,
-            target_id=target_id,
-            winrm_creds_id=winrm_creds_id,
-            ssh_creds_id=ssh_creds_id
+            target_id=target_id
         )
         
         db.add(db_platform)

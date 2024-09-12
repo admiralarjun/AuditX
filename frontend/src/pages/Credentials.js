@@ -169,10 +169,7 @@ const CredentialsPage = () => {
   const saveWinrmCredentials = async () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
-      const response = await axios.post("/winrm_creds/", {
-        ...winrmCredentials,
-        profile_id: null // or the actual profile_id if you have it
-      });
+      const response = await axios.post("/winrm_creds/", winrmCredentials);
       if (response.data) {
         alert("WinRM credentials saved successfully.");
         fetchAllCredentials();
@@ -325,8 +322,8 @@ const CredentialsPage = () => {
                 onClick={handleDisconnect}
                 variant="contained"
                 sx={{
-                  backgroundColor: "#e74c3c",
-                  "&:hover": { backgroundColor: "#c0392b" },
+                  backgroundColor: "#FFC107",
+                  "&:hover": { backgroundColor: "#DAA520" },
                 }}
                 disabled={currentCredential === null}
               >
@@ -408,8 +405,8 @@ const CredentialsPage = () => {
                 onClick={handleDisconnect}
                 variant="contained"
                 sx={{
-                  backgroundColor: "#e74c3c",
-                  "&:hover": { backgroundColor: "#c0392b" },
+                  backgroundColor: "#FFC107",
+                  "&:hover": { backgroundColor: "#DAA520" },
                 }}
                  disabled={currentCredential === null}
               >
@@ -524,8 +521,8 @@ const CredentialsPage = () => {
                   variant="contained"
                   fullWidth
                   sx={{
-                    backgroundColor: "#e74c3c",
-                    "&:hover": { backgroundColor: "#c0392b" },
+                    backgroundColor: "#FFC107",
+                    "&:hover": { backgroundColor: "#DAA520" },
                   }}
                 >
                   Disconnect
@@ -533,12 +530,13 @@ const CredentialsPage = () => {
                 <StyledButton
                   onClick={handleDisconnect}
                   variant="contained"
-                  startIcon={<DeleteIcon />}
                   sx={{
                     backgroundColor: "#e74c3c",
                     "&:hover": { backgroundColor: "#c0392b" },
                   }}
-                />
+                >
+                  <DeleteIcon />
+                </StyledButton>
               </Box>
             ) : (
               <StyledButton

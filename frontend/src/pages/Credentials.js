@@ -1,29 +1,29 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Typography,
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Box,
-  IconButton,
-  Card,
-  CardContent,
-  Modal,
-  Fade,
-  Switch,
-  FormControlLabel,
-  Tabs,
-  Tab,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
-import SaveIcon from "@mui/icons-material/Save";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import DesktopWindowsIcon from "@mui/icons-material/DesktopWindows";
 import ComputerIcon from "@mui/icons-material/Computer";
+import DesktopWindowsIcon from "@mui/icons-material/DesktopWindows";
+import SaveIcon from "@mui/icons-material/Save";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Fade,
+  FormControlLabel,
+  IconButton,
+  Modal,
+  Paper,
+  Switch,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import axios from "axios";
+import React, { useEffect, useRef, useState } from "react";
 
 // Styled components (reused and combined from both pages)
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -228,10 +228,21 @@ const CredentialsPage = () => {
     setIsModalOpen(true);
   };
 
+  const [currentCredential, setCurrentCredential] = useState(null);
+
   const handleConnect = () => {
+    setCurrentCredential(selectedCredential.id);
     console.log("Connecting to:", selectedCredential);
     localStorage.setItem("selectedCredential", selectedCredential.id);
     localStorage.setItem("selectedCredentialType", tabValue === 0 ? "winrm" : "ssh");
+    setIsModalOpen(false);
+  };
+
+  const handleDisconnect = () => {
+    setCurrentCredential(null);
+    console.log("Disconnecting from:", selectedCredential);
+    localStorage.removeItem("selectedCredential");
+    localStorage.removeItem("selectedCredentialType");
     setIsModalOpen(false);
   };
 
@@ -473,17 +484,32 @@ const CredentialsPage = () => {
                 </Typography>
               </>
             )}
-            <StyledButton
-              onClick={handleConnect}
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: "#3498db",
-                "&:hover": { backgroundColor: "#2980b9" },
-              }}
-            >
+            {(selectedCredential && currentCredential === selectedCredential.id) ? (
+              <StyledButton
+                onClick={handleConnect}
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: "#3498db",
+                  "&:hover": { backgroundColor: "#2980b9" },
+                }}
+              >
               Connect
-            </StyledButton>
+              </StyledButton>
+            ) : (
+              <StyledButton
+                onClick={handleDisconnect}
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: "#e74c3c",
+                  "&:hover": { backgroundColor: "#2980b9" },
+                }}
+              >
+              Disconnect
+              </StyledButton>
+            )}
+           
           </ModalContent>
         </Fade>
       </Modal>

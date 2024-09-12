@@ -1,17 +1,17 @@
 // ProfileList.js
 import {
   Box,
+  Button,
   CircularProgress,
   List,
   ListItem,
   ListItemText,
   Paper,
   Typography,
-  Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import ProfileAddModal from "./ProfileAddModal";
 import { getProfiles } from "../api/profileBackendApi";
+import ProfileAddModal from "./ProfileAddModal";
 
 const ProfileList = ({ onSelectProfile }) => {
   const [profiles, setProfiles] = useState([]);
@@ -26,6 +26,10 @@ const ProfileList = ({ onSelectProfile }) => {
         const response = await getProfiles();
         console.log(response.data);
         setProfiles(response.data || []); // Assuming the response.data is already the array of profiles
+        if(response.data.length > 0) {
+          setSelectedProfile(response.data[0]);
+          onSelectProfile(response.data[0]);
+        }
       } catch (error) {
         setError("Error fetching profiles");
       } finally {
@@ -34,7 +38,7 @@ const ProfileList = ({ onSelectProfile }) => {
     };
 
     fetchProfiles();
-  }, []);
+  }, [onSelectProfile]);
 
   const handleProfileClick = (profile) => {
     setSelectedProfile(profile);

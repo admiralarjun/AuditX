@@ -19,32 +19,37 @@ const Audit = () => {
       </Box>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          sx={{
+        value={tabValue}
+        onChange={handleTabChange}
+        sx={{
+          minHeight: 'auto',
+          '& .MuiTabs-indicator': {
+            display: 'none', // No default indicator, we'll style it ourselves.
+          },
+          '& .MuiTab-root': {
             minHeight: 'auto',
-            '& .MuiTabs-indicator': {
-              display: 'none',
+            py: 1.5, // More padding for file-label feel
+            px: 3,
+            borderTopLeftRadius: 8, 
+            borderTopRightRadius: 8,
+            border: '1px solid',
+            borderColor: 'divider',
+            borderBottom: tabValue === 0 ? 'none' : '1px solid transparent', // Hide bottom border for active
+            boxShadow: tabValue === 0 ? '0px 2px 3px rgba(0, 0, 0, 0.1)' : 'none', // Subtle shadow for the active tab
+            '&.Mui-selected': {
+              backgroundColor: '#ffffff', // White background for active tab
+              fontWeight: 'bold',
+              zIndex: 1, // Ensure active tab is above the content
             },
-            '& .MuiTab-root': {
-              minHeight: 'auto',
-              py: 1,
-              px: 2,
-              borderTopLeftRadius: 8,
-              borderTopRightRadius: 8,
-              border: '1px solid',
-              borderColor: 'divider',
-              borderBottom: 'none',
-              '&.Mui-selected': {
-                bgcolor: '#f5f5f5',
-                fontWeight: 'bold',
-              },
-            },
-          }}
-        >
-          <Tab label="Profiles" />
-          <Tab label="Audit" />
-        </Tabs>
+            backgroundColor: '#f0f0f0', // Slightly off-white background for inactive tabs
+            transition: 'background-color 0.3s ease', // Smooth transition on tab change
+          },
+        }}
+      >
+        <Tab label="Profiles" />
+        <Tab label="Audit" />
+      </Tabs>
+
         <Paper sx={{ flexGrow: 1, overflowY: 'auto', borderRadius: 0 }}>
           {tabValue === 0 && selectedProfile && (
             <ControlsList selectedProfile={selectedProfile} />

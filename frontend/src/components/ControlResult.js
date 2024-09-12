@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Accordion,
   AccordionDetails,
@@ -18,8 +18,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import SearchIcon from "@mui/icons-material/Search";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import JsonDisplay from "../helper/JsonDisplay";
 
 const API_URL = "http://localhost:8000";
@@ -277,9 +277,16 @@ const ControlResult = ({ selectedProfile }) => {
       setLoading(false);
     }
   };
-
-  if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (loading) return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+        <CircularProgress />
+      </div>
+  );
+  if (error) return (
+    <Typography color="error" sx={{ padding: 2 }}>
+      {error}
+    </Typography>
+  );
 
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>

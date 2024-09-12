@@ -13,3 +13,4 @@ class SSHCreds(Base):
     ssh_ip = Column(String, nullable=False)
 
     platforms = relationship("Platform", back_populates="ssh_creds")
+    profiles = relationship("Profile", back_populates="ssh_creds")

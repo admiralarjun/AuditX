@@ -2,6 +2,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ComputerIcon from "@mui/icons-material/Computer";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DesktopWindowsIcon from "@mui/icons-material/DesktopWindows";
 import SaveIcon from "@mui/icons-material/Save";
 import {
@@ -532,13 +533,12 @@ const CredentialsPage = () => {
                 <StyledButton
                   onClick={handleDisconnect}
                   variant="contained"
+                  startIcon={<DeleteIcon />}
                   sx={{
                     backgroundColor: "#e74c3c",
                     "&:hover": { backgroundColor: "#c0392b" },
                   }}
-                >
-                  D
-                </StyledButton>
+                />
               </Box>
             ) : (
               <StyledButton

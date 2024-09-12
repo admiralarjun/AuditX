@@ -168,7 +168,10 @@ const CredentialsPage = () => {
   const saveWinrmCredentials = async () => {
     try {
       axios.defaults.baseURL = "http://127.0.0.1:8000";
-      const response = await axios.post("/winrm_creds/", winrmCredentials);
+      const response = await axios.post("/winrm_creds/", {
+        ...winrmCredentials,
+        profile_id: null // or the actual profile_id if you have it
+      });
       if (response.data) {
         alert("WinRM credentials saved successfully.");
         fetchAllCredentials();

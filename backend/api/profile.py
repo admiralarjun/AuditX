@@ -42,8 +42,12 @@ def create_profile(
 
 @router.get("/profiles/", response_model=List[ProfileRead])
 def read_profiles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    profiles = db.query(ProfileModel).offset(skip).limit(limit).all()
-    return profiles
+    try:
+        profiles = db.query(ProfileModel).offset(skip).limit(limit).all()
+        return profiles
+    except Exception as e:
+        print(f"Error fetching profiles: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("/profiles/{profile_id}", response_model=ProfileRead)
 def read_profile(profile_id: int, db: Session = Depends(get_db)):

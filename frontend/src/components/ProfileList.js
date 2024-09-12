@@ -23,11 +23,13 @@ const ProfileList = ({ onSelectProfile }) => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await getProfiles();
-        console.log(response.data);
-        setProfiles(response.data || []); // Assuming the response.data is already the array of profiles
+        const data = await getProfiles();
+        setProfiles(Array.isArray(data) ? data : []);
+        setError(null);
       } catch (error) {
-        setError("Error fetching profiles");
+        console.error("Error fetching profiles:", error);
+        setError("Error fetching profiles. Please try again later.");
+        setProfiles([]);
       } finally {
         setLoading(false);
       }
@@ -42,89 +44,44 @@ const ProfileList = ({ onSelectProfile }) => {
   };
 
   const handleAddProfile = (newProfile) => {
-    setProfiles([...profiles, newProfile]);
+    setProfiles((prevProfiles) => [...prevProfiles, newProfile]);
   };
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  if (error) {
-    return (
-      <Paper elevation={3} sx={{ padding: 2, textAlign: "center" }}>
-        <Typography color="error" variant="h6">
-          {error}
-        </Typography>
-      </Paper>
-    );
-  }
-
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        padding: 2,
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>
-        Profiles
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setModalOpen(true)}
-        sx={{ mb: 2 }}
-      >
+    <Paper elevation={3} sx={{ padding: 2, height: "100vh", display: "flex", flexDirection: "column" }}>
+      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>Profiles</Typography>
+      <Button variant="contained" color="primary" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
         Add New Profile
       </Button>
-      {profiles.length === 0 ? (
+      {error ? (
+        <Typography color="error">{error}</Typography>
+      ) : profiles.length === 0 ? (
         <Typography>No profiles available</Typography>
       ) : (
-        <List
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
-            height: "100%",
-            padding: 0,
-            overflowY: "auto",
-          }}
-        >
+        <List sx={{ display: "flex", flexDirection: "column", gap: 1, height: "100%", padding: 0, overflowY: "auto" }}>
           {profiles.map((profile) => (
             <ListItem
               button
               key={profile.id}
               onClick={() => handleProfileClick(profile)}
               sx={{
-                backgroundColor:
-                  selectedProfile === profile ? "#c5cae9" : "inherit",
-                "&:hover": {
-                  backgroundColor: "#e8eaf6",
-                },
+                backgroundColor: selectedProfile === profile ? "#c5cae9" : "inherit",
+                "&:hover": { backgroundColor: "#e8eaf6" },
                 borderRadius: 1,
                 transition: "background-color 0.3s ease",
                 marginRight: 2,
                 padding: "8px 16px",
               }}
             >
-              <ListItemText
-                primary={profile.name}
-                secondary={`Version: ${profile.version} | Maintainer: ${profile.maintainer}`}
-              />
+              <ListItemText primary={profile.name} />
             </ListItem>
           ))}
         </List>

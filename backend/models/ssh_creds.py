@@ -12,5 +12,4 @@ class SSHCreds(Base):
     ssh_pem_path = Column(String, nullable=True)
     ssh_ip = Column(String, nullable=False)
 
-    platforms = relationship("Platform", back_populates="ssh_creds")
     profiles = relationship("Profile", back_populates="ssh_creds")

@@ -21,13 +21,12 @@ const Profiles = () => {
     fetchProfiles();
   }, []);
 
-  const handleAddProfile = () => {
-    // Implement the logic to add a new profile
-    console.log('Add new profile');
+  const handleAddProfile = (newProfile) => {
+    setProfiles([...profiles, newProfile]);
   };
 
   return (
-    <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}> {/* Adjust height based on your navbar height */}
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
       <ProfileList
         profiles={profiles}
         onSelectProfile={setSelectedProfile}

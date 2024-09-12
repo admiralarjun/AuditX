@@ -118,10 +118,19 @@ const CredentialsPage = () => {
   const [selectedCredential, setSelectedCredential] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = useRef(null);
+  const [currentCredential, setCurrentCredential] = useState(null);
 
   useEffect(() => {
     fetchAllCredentials();
   }, []);
+
+  useEffect(() => {
+    const storedCredential = localStorage.getItem("selectedCredential");
+    if (storedCredential) {
+      setCurrentCredential(Number(storedCredential));
+    };
+    console.log("Current credential:", currentCredential, storedCredential);
+  }, [currentCredential]);
 
   const fetchAllCredentials = async () => {
     try {
@@ -228,8 +237,6 @@ const CredentialsPage = () => {
     setIsModalOpen(true);
   };
 
-  const [currentCredential, setCurrentCredential] = useState(null);
-
   const handleConnect = () => {
     setCurrentCredential(selectedCredential.id);
     console.log("Connecting to:", selectedCredential);
@@ -309,7 +316,18 @@ const CredentialsPage = () => {
               }
               label="Use SSL"
             />
-            <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2, gap: 2 }}>
+            <StyledButton
+                onClick={handleDisconnect}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#e74c3c",
+                  "&:hover": { backgroundColor: "#c0392b" },
+                }}
+                disabled={currentCredential === null}
+              >
+                Disconnect all
+              </StyledButton>
               <StyledButton
                 onClick={saveWinrmCredentials}
                 variant="contained"
@@ -381,6 +399,17 @@ const CredentialsPage = () => {
                 }}
               >
                 Save
+              </StyledButton>
+              <StyledButton
+                onClick={handleDisconnect}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#e74c3c",
+                  "&:hover": { backgroundColor: "#c0392b" },
+                }}
+                 disabled={currentCredential === null}
+              >
+                Disconnect all
               </StyledButton>
             </Box>
           </Box>
@@ -485,31 +514,42 @@ const CredentialsPage = () => {
               </>
             )}
             {(selectedCredential && currentCredential === selectedCredential.id) ? (
-              <StyledButton
-                onClick={handleConnect}
-                variant="contained"
-                fullWidth
-                sx={{
-                  backgroundColor: "#3498db",
-                  "&:hover": { backgroundColor: "#2980b9" },
-                }}
-              >
-              Connect
-              </StyledButton>
+              <Box sx={{ display: "flex", marginTop: 2, gap: 2 }}>
+                <StyledButton
+                  onClick={handleDisconnect}
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: "#e74c3c",
+                    "&:hover": { backgroundColor: "#c0392b" },
+                  }}
+                >
+                  Disconnect
+                </StyledButton>
+                <StyledButton
+                  onClick={handleDisconnect}
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#e74c3c",
+                    "&:hover": { backgroundColor: "#c0392b" },
+                  }}
+                >
+                  D
+                </StyledButton>
+              </Box>
             ) : (
               <StyledButton
-                onClick={handleDisconnect}
-                variant="contained"
-                fullWidth
-                sx={{
-                  backgroundColor: "#e74c3c",
-                  "&:hover": { backgroundColor: "#2980b9" },
-                }}
-              >
-              Disconnect
-              </StyledButton>
+              onClick={handleConnect}
+              variant="contained"
+              fullWidth
+              sx={{
+                backgroundColor: "#3498db",
+                "&:hover": { backgroundColor: "#2980b9" },
+              }}
+            >
+            Connect
+            </StyledButton>
             )}
-           
           </ModalContent>
         </Fade>
       </Modal>

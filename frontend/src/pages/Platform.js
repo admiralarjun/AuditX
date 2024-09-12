@@ -4,7 +4,6 @@ import ComputerIcon from "@mui/icons-material/Computer";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
-import LinkIcon from "@mui/icons-material/Link";
 import {
   Box,
   Button,
@@ -17,18 +16,15 @@ import {
   Paper,
   TextField,
   Typography,
-  Select,
-  MenuItem,
-  Link,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
   createPlatform,
   updatePlatform,
   getPlatforms,
 } from "../api/platformApi";
+import axios from "axios";
 
 // Styled components (unchanged)
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -101,45 +97,21 @@ const ModalContent = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
 }));
 
-const StyledSelect = styled(Select)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  "& .MuiOutlinedInput-root": {
-    borderRadius: theme.spacing(1),
-  },
-}));
-
-const StyledLink = styled(Link)(({ theme }) => ({
-  color: theme.palette.primary.main,
-  textDecoration: "none",
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(0.5),
-  "&:hover": {
-    textDecoration: "underline",
-  },
-}));
-
 const PlatformPage = () => {
   const [platform, setPlatform] = useState({
     name: "",
     release: "",
     target_id: "",
-    winrm_creds_id: "",
-    ssh_creds_id: "",
   });
   const [allPlatforms, setAllPlatforms] = useState([]);
   const [isScrolling, setIsScrolling] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [winrmCreds, setWinrmCreds] = useState([]);
-  const [sshCreds, setSshCreds] = useState([]);
   const scrollContainerRef = React.useRef(null);
 
   useEffect(() => {
     fetchAllPlatforms();
-    fetchWinRMCreds();
-    fetchSSHCreds();
   }, []);
 
   const fetchAllPlatforms = async () => {
@@ -149,24 +121,6 @@ const PlatformPage = () => {
     } catch (error) {
       console.error("Error fetching platforms:", error);
       alert("Failed to fetch platforms. Please try again.");
-    }
-  };
-
-  const fetchWinRMCreds = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/winrm_creds/");
-      setWinrmCreds(response.data);
-    } catch (error) {
-      console.error("Error fetching WinRM credentials:", error);
-    }
-  };
-
-  const fetchSSHCreds = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/ssh_creds/");
-      setSshCreds(response.data);
-    } catch (error) {
-      console.error("Error fetching SSH credentials:", error);
     }
   };
 
@@ -196,12 +150,6 @@ const PlatformPage = () => {
         name: platform.name.trim(),
         release: platform.release.trim(),
         target_id: targetId,
-        winrm_creds_id: platform.winrm_creds_id
-          ? parseInt(platform.winrm_creds_id, 10)
-          : null,
-        ssh_creds_id: platform.ssh_creds_id
-          ? parseInt(platform.ssh_creds_id, 10)
-          : null,
       };
 
       if (isEditMode) {
@@ -215,8 +163,6 @@ const PlatformPage = () => {
         name: "",
         release: "",
         target_id: "",
-        winrm_creds_id: "",
-        ssh_creds_id: "",
       });
       setIsEditMode(false);
     } catch (error) {
@@ -305,36 +251,6 @@ const PlatformPage = () => {
             onChange={handleChange}
             placeholder="Enter target ID"
           />
-          <StyledSelect
-            name="winrm_creds_id"
-            label="WinRM Credentials"
-            value={platform.winrm_creds_id}
-            onChange={handleChange}
-            fullWidth
-            displayEmpty
-          >
-            <MenuItem value="">Select WinRM Credentials</MenuItem>
-            {winrmCreds.map((cred) => (
-              <MenuItem key={cred.id} value={cred.id}>
-                {cred.winrm_username} - {cred.winrm_hostname}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-          <StyledSelect
-            name="ssh_creds_id"
-            label="SSH Credentials"
-            value={platform.ssh_creds_id}
-            onChange={handleChange}
-            fullWidth
-            displayEmpty
-          >
-            <MenuItem value="">Select SSH Credentials</MenuItem>
-            {sshCreds.map((cred) => (
-              <MenuItem key={cred.id} value={cred.id}>
-                {cred.ssh_username} - {cred.ssh_ip}
-              </MenuItem>
-            ))}
-          </StyledSelect>
           <Box
             sx={{
               display: "flex",
@@ -351,8 +267,6 @@ const PlatformPage = () => {
                     name: "",
                     release: "",
                     target_id: "",
-                    winrm_creds_id: "",
-                    ssh_creds_id: "",
                   });
                 }}
                 variant="outlined"
@@ -477,32 +391,6 @@ const PlatformPage = () => {
             <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
               Target ID: {selectedPlatform?.target_id}
             </Typography>
-            {selectedPlatform?.winrm_creds_id && (
-              <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
-                WinRM Credentials:
-                <StyledLink
-                  href={`/winrm_creds/${selectedPlatform.winrm_creds_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <LinkIcon fontSize="small" />
-                  View Details
-                </StyledLink>
-              </Typography>
-            )}
-            {selectedPlatform?.ssh_creds_id && (
-              <Typography sx={{ color: "#7f8c8d", marginBottom: 2 }}>
-                SSH Credentials:
-                <StyledLink
-                  href={`/ssh_creds/${selectedPlatform.ssh_creds_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <LinkIcon fontSize="small" />
-                  View Details
-                </StyledLink>
-              </Typography>
-            )}
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <StyledButton
                 onClick={handleEdit}

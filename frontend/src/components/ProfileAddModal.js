@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Modal, Box, Typography, TextField, Button, MenuItem, Select, FormControl, InputLabel, Grid } from "@mui/material";
 import { createProfile } from "../api/profileBackendApi";
 import { getPlatforms } from "../api/platformApi";
+import { getWinRMCreds } from "../api/winrmCredsApi";
+import { getSSHCreds } from "../api/sshCredsApi";
 
 const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
   const [profileData, setProfileData] = useState({
@@ -12,18 +14,27 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
   });
   
   const [platforms, setPlatforms] = useState([]);
+  const [winrmCreds, setWinrmCreds] = useState([]);
+  const [sshCreds, setSSHCreds] = useState([]);
+  const [selectedCredType, setSelectedCredType] = useState("");
 
   useEffect(() => {
-    const fetchPlatforms = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getPlatforms();
-        setPlatforms(response.data);
+        const [platformsResponse, winrmCredsResponse, sshCredsResponse] = await Promise.all([
+          getPlatforms(),
+          getWinRMCreds(),
+          getSSHCreds()
+        ]);
+        setPlatforms(platformsResponse.data);
+        setWinrmCreds(winrmCredsResponse.data);
+        setSSHCreds(sshCredsResponse.data);
       } catch (error) {
-        console.error("Error fetching platforms:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchPlatforms();
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
@@ -31,6 +42,25 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
     setProfileData({
       ...profileData,
       [name]: value,
+    });
+  };
+
+  const handleCredTypeChange = (e) => {
+    const credType = e.target.value;
+    setSelectedCredType(credType);
+    setProfileData({
+      ...profileData,
+      winrm_creds_id: null,
+      ssh_creds_id: null,
+    });
+  };
+
+  const handleCredChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData({
+      ...profileData,
+      [name]: value,
+      [name === 'winrm_creds_id' ? 'ssh_creds_id' : 'winrm_creds_id']: null,
     });
   };
 
@@ -85,25 +115,51 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
           onChange={handleChange}
         />
 
-        <TextField
-          label="WinRM Credentials ID"
-          name="winrm_creds_id"
-          value={profileData.winrm_creds_id || ''}
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          type="number"
-        />
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Credential Type</InputLabel>
+          <Select
+            value={selectedCredType}
+            onChange={handleCredTypeChange}
+          >
+            <MenuItem value="">None</MenuItem>
+            <MenuItem value="winrm">WinRM</MenuItem>
+            <MenuItem value="ssh">SSH</MenuItem>
+          </Select>
+        </FormControl>
 
-        <TextField
-          label="SSH Credentials ID"
-          name="ssh_creds_id"
-          value={profileData.ssh_creds_id || ''}
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          type="number"
-        />
+        {selectedCredType === "winrm" && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel>WinRM Credentials</InputLabel>
+            <Select
+              name="winrm_creds_id"
+              value={profileData.winrm_creds_id || ''}
+              onChange={handleCredChange}
+            >
+              {winrmCreds.map((cred) => (
+                <MenuItem key={cred.id} value={cred.id}>
+                  {cred.winrm_username} - {cred.winrm_hostname}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {selectedCredType === "ssh" && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel>SSH Credentials</InputLabel>
+            <Select
+              name="ssh_creds_id"
+              value={profileData.ssh_creds_id || ''}
+              onChange={handleCredChange}
+            >
+              {sshCreds.map((cred) => (
+                <MenuItem key={cred.id} value={cred.id}>
+                  {cred.ssh_username} - {cred.ssh_ip}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
 
         <Button
           variant="contained"

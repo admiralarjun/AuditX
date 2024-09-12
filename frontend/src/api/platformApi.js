@@ -15,14 +15,11 @@ export const getPlatforms = async () => {
 export const createPlatform = async (platformData) => {
   try {
     const formData = new FormData();
-    for (const key in platformData) {
-      if (platformData[key] !== null && platformData[key] !== undefined) {
-        formData.append(key, platformData[key]);
-      }
-    }
-    const response = await axios.post(`${apiurl()}/platforms/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    formData.append('name', platformData.name);
+    formData.append('release', platformData.release);
+    formData.append('target_id', platformData.target_id);
+
+    const response = await axios.post(`${apiurl()}/platforms/`, formData);
     return response.data;
   } catch (error) {
     if (error.response && error.response.data) {

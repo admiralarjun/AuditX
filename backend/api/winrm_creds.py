@@ -5,7 +5,6 @@ from db import SessionLocal
 from models.winrm_creds import WinRMCreds as WinRMCredsModel
 from schemas.winrm_creds import WinRMCredsRead, WinRMCredsCreate, WinRMCredsUpdate
 from typing import List
-from models.profile import Profile
 
 router = APIRouter()
 
@@ -19,23 +18,10 @@ def get_db():
 
 @router.post("/winrm_creds/", response_model=WinRMCredsRead)
 def create_winrm_creds(
-    winrm_data: dict = Body(...),  # Expect JSON body
+    winrm_data: WinRMCredsCreate,
     db: Session = Depends(get_db)
 ):
-    profile_id = winrm_data.get("profile_id")
-    if profile_id:
-        profile = db.query(Profile).filter(Profile.id == profile_id).first()
-        if not profile:
-            raise HTTPException(status_code=404, detail="Profile not found")
-    
-    db_winrm_creds = WinRMCredsModel(
-        winrm_username=winrm_data["winrm_username"],
-        winrm_password=winrm_data["winrm_password"],
-        winrm_hostname=winrm_data["winrm_hostname"],
-        winrm_port=winrm_data.get("winrm_port", 5986),  # Default port if not provided
-        use_ssl=winrm_data.get("use_ssl", True),  # Default SSL usage if not provided
-        profile_id=profile_id
-    )
+    db_winrm_creds = WinRMCredsModel(**winrm_data.dict())
     db.add(db_winrm_creds)
     db.commit()
     db.refresh(db_winrm_creds)

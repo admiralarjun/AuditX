@@ -26,6 +26,10 @@ const ProfileList = ({ onSelectProfile }) => {
         const data = await getProfiles();
         setProfiles(Array.isArray(data) ? data : []);
         setError(null);
+        if(data.length > 0) {
+          setSelectedProfile(data[0]);
+          onSelectProfile(data[0]);
+        }
       } catch (error) {
         console.error("Error fetching profiles:", error);
         setError("Error fetching profiles. Please try again later.");

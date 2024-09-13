@@ -18,18 +18,18 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/ssh_creds/", response_model=SSHCredsRead)
+@router.post("/ssh_creds/", response_model=SSHCredsCreate)
 async def create_ssh_creds(
     ssh_username: str = Form(...),
     ssh_password: str = Form(None),
-    ssh_ip: str = Form(...),
+    ssh_hostname: str = Form(...),
     pem_file: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     ssh_creds_data = {
         "ssh_username": ssh_username,
         "ssh_password": ssh_password,
-        "ssh_ip": ssh_ip,
+        "ssh_hostname": ssh_hostname,
     }
 
     if pem_file:
@@ -68,7 +68,7 @@ def read_ssh_creds(ssh_creds_id: int, db: Session = Depends(get_db)):
 async def update_ssh_creds(
     ssh_creds_id: int,
     ssh_username: str = Form(None),
-    ssh_ip: str = Form(None),
+    ssh_hostname: str = Form(None),
     ssh_password: str = Form(None),
     db: Session = Depends(get_db),
     pem_file: UploadFile = File(None)
@@ -79,8 +79,8 @@ async def update_ssh_creds(
 
     if ssh_username:
         db_ssh_creds.ssh_username = ssh_username
-    if ssh_ip:
-        db_ssh_creds.ssh_ip = ssh_ip
+    if ssh_hostname:
+        db_ssh_creds.ssh_hostname = ssh_hostname
     if ssh_password:
         db_ssh_creds.ssh_password = ssh_password
 

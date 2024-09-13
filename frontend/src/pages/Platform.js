@@ -18,13 +18,13 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
   createPlatform,
-  updatePlatform,
   getPlatforms,
+  updatePlatform,
 } from "../api/platformApi";
-import axios from "axios";
 
 // Styled components (unchanged)
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -120,7 +120,7 @@ const PlatformPage = () => {
       setAllPlatforms(response.data);
     } catch (error) {
       console.error("Error fetching platforms:", error);
-      alert("Failed to fetch platforms. Please try again.");
+      // alert("Failed to fetch platforms. Please try again.");
     }
   };
 

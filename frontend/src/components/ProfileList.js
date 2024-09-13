@@ -53,24 +53,24 @@ const ProfileList = ({ onSelectProfile }) => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Paper elevation={3} sx={{ padding: 2, height: "100vh", display: "flex", flexDirection: "column" }}>
-      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>Profiles</Typography>
+    <Paper elevation={3} sx={{ padding: 2, height: "100vh", display: "flex", flexDirection: "column", overflowX: "hidden", overflowY: "hidden" }}>
+      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>Devices</Typography>
       <Button variant="contained" color="primary" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
-        Add New Profile
+        Add New Device
       </Button>
       {error ? (
         <Typography color="error">{error}</Typography>
       ) : profiles.length === 0 ? (
         <Typography>No profiles available</Typography>
       ) : (
-        <List sx={{ display: "flex", flexDirection: "column", gap: 1, height: "100%", padding: 0, overflowY: "auto" }}>
+        <List sx={{ display: "flex", flexDirection: "column", gap: 1, height: "100%", padding: 0 }}>
           {profiles.map((profile) => (
             <ListItem
               button

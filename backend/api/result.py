@@ -12,6 +12,8 @@ import uuid
 import json
 import tempfile
 import os
+from models.profile import Profile as ProfileModel
+from models.profile import CredsType
 
 router = APIRouter()
 
@@ -80,9 +82,17 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
 
         # Fetch the selected_controls list from the request body
         selected_controls = body.get('selected_controls', [])
-        selectedCredentialId = body.get('selectedCredentialId')
-        selectedCredentialType = body.get('selectedCredentialType')
-        print(f"Selected id and type and controls: {selectedCredentialId} - {selectedCredentialType} - {selected_controls}")
+        
+        profile = db.query(ProfileModel).filter(ProfileModel.id == profile_id).first()
+        if profile is None:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        selectedCredentialId = profile.creds_id
+        selectedCredentialType = profile.creds_type 
+
+        print(f"Selected controls: {selected_controls}")
+        print(f"Selected Credential ID and type: {selectedCredentialId, selectedCredentialType}")
+
         # Fetch controls from the database for the given profile
         controls = db.query(ControlModel).filter(ControlModel.profile_id == profile_id).all()
 
@@ -104,12 +114,12 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     temp_file_path = temp_file.name
 
 
-                if(selectedCredentialType == "ssh"):
+                if(selectedCredentialType == CredsType.ssh):
                     ssh_creds = db.query(SSHCredsModel).filter(SSHCredsModel.id == selectedCredentialId).first()
                     if ssh_creds is None:
                         raise HTTPException(status_code=404, detail="SSH Credentials not found")
                     
-                    ssh_target = f"{ssh_creds.ssh_username}@{ssh_creds.ssh_ip}"
+                    ssh_target = f"{ssh_creds.ssh_username}@{ssh_creds.ssh_hostname}"
                     if ssh_creds.ssh_pem_path:
                         ssh_command = f"-i {ssh_creds.ssh_pem_path}"
                     elif ssh_creds.ssh_password:

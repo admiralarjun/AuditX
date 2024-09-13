@@ -1,6 +1,4 @@
-# models/ssh_creds.py
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String
 from db import Base
 
 class SSHCreds(Base):
@@ -9,8 +7,6 @@ class SSHCreds(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     ssh_username = Column(String, nullable=False)
     ssh_password = Column(String, nullable=True)
+    ssh_hostname = Column(String, nullable=False)
+    ssh_port = Column(Integer, nullable=False, default=22)
     ssh_pem_path = Column(String, nullable=True)
-    ssh_ip = Column(String, nullable=False)
-
-    # Define the relationship to Profile
-    profiles = relationship("Profile", back_populates="ssh_creds")

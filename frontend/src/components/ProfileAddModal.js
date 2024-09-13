@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Box, Typography, TextField, Button, MenuItem, Select, FormControl, InputLabel, Grid } from "@mui/material";
-import { createProfile } from "../api/profileBackendApi";
+import { Box, Button, FormControl, InputLabel, MenuItem, Modal, Select, TextField, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import { getPlatforms } from "../api/platformApi";
-import { getWinRMCreds } from "../api/winrmCredsApi";
+import { createProfile } from "../api/profileBackendApi";
 import { getSSHCreds } from "../api/sshCredsApi";
+import { getWinRMCreds } from "../api/winrmCredsApi";
 
 const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
   const [profileData, setProfileData] = useState({
     platform_id: "",
     name: "",
-    winrm_creds_id: null,
-    ssh_creds_id: null,
+    creds_type: "", // Track the credential type
+    creds_id: null, // Single field to hold the selected credential ID
   });
   
   const [platforms, setPlatforms] = useState([]);
@@ -50,17 +50,16 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
     setSelectedCredType(credType);
     setProfileData({
       ...profileData,
-      winrm_creds_id: null,
-      ssh_creds_id: null,
+      creds_type: credType, // Set the credential type
+      creds_id: credType === "none" ? null : "", // Reset creds_id when the type changes, or set to null for "none"
     });
   };
 
   const handleCredChange = (e) => {
-    const { name, value } = e.target;
+    const { value } = e.target;
     setProfileData({
       ...profileData,
-      [name]: value,
-      [name === 'winrm_creds_id' ? 'ssh_creds_id' : 'winrm_creds_id']: null,
+      creds_id: value, // Update creds_id when the user selects a credential
     });
   };
 
@@ -89,7 +88,7 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
         display: "flex",
         flexDirection: "column",
       }}>
-        <Typography variant="h6" gutterBottom>Add New Profile</Typography>
+        <Typography variant="h6" gutterBottom>Add New Device</Typography>
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Platform</InputLabel>
@@ -121,18 +120,19 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
             value={selectedCredType}
             onChange={handleCredTypeChange}
           >
-            <MenuItem value="">None</MenuItem>
+            <MenuItem value="none">None</MenuItem>
             <MenuItem value="winrm">WinRM</MenuItem>
             <MenuItem value="ssh">SSH</MenuItem>
           </Select>
         </FormControl>
 
+        {/* Show credential selection only if the type is not "none" */}
         {selectedCredType === "winrm" && (
           <FormControl fullWidth margin="normal">
             <InputLabel>WinRM Credentials</InputLabel>
             <Select
-              name="winrm_creds_id"
-              value={profileData.winrm_creds_id || ''}
+              name="creds_id" // Single field for creds_id
+              value={profileData.creds_id || ''}
               onChange={handleCredChange}
             >
               {winrmCreds.map((cred) => (
@@ -148,8 +148,8 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
           <FormControl fullWidth margin="normal">
             <InputLabel>SSH Credentials</InputLabel>
             <Select
-              name="ssh_creds_id"
-              value={profileData.ssh_creds_id || ''}
+              name="creds_id" // Single field for creds_id
+              value={profileData.creds_id || ''}
               onChange={handleCredChange}
             >
               {sshCreds.map((cred) => (
@@ -168,7 +168,7 @@ const ProfileAddModal = ({ open, onClose, onProfileAdded }) => {
           onClick={handleSubmit}
           sx={{ mt: 2 }}
         >
-          Add Profile
+          Add Device
         </Button>
       </Box>
     </Modal>

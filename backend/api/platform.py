@@ -4,6 +4,7 @@ from db import SessionLocal
 from models.platform import Platform as PlatformModel
 from schemas.platform import PlatformRead, PlatformUpdate
 from typing import List, Optional
+import logging
 
 router = APIRouter()
 
@@ -14,6 +15,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @router.post("/platforms/", response_model=PlatformRead)
 def create_platform(
@@ -35,6 +40,7 @@ def create_platform(
         return db_platform
     except Exception as e:
         db.rollback()
+        logger.error(f"Error creating platform: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/platforms/{platform_id}", response_model=PlatformRead)
@@ -48,8 +54,11 @@ def read_platform(platform_id: int, db: Session = Depends(get_db)):
 def get_all_platforms(db: Session = Depends(get_db)):
     try:
         platforms = db.query(PlatformModel).all()
+        if not platforms:
+            return []
         return platforms
     except Exception as e:
+        logger.error(f"Error fetching platforms: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred while fetching platforms: {str(e)}")
 
 @router.put("/platforms/{platform_id}", response_model=PlatformRead)

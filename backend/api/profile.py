@@ -1,10 +1,10 @@
-# api/profile.py
 from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from db import SessionLocal
 from models.profile import Profile as ProfileModel
 from schemas.profile import ProfileCreate, ProfileRead, ProfileUpdate
+from models.profile import CredsType
 
 router = APIRouter()
 
@@ -20,16 +20,20 @@ def get_db():
 def create_profile(
     platform_id: int = Form(...),
     name: str = Form(...),
-    winrm_creds_id: Optional[int] = Form(None),
-    ssh_creds_id: Optional[int] = Form(None),
+    creds_type: Optional[CredsType] = Form(CredsType.none),
+    creds_id: Optional[int] = Form(None),
     db: Session = Depends(get_db)
 ):
     try:
+        # If creds_type is 'none', ensure creds_id is None
+        if creds_type == CredsType.none:
+            creds_id = None
+
         db_profile = ProfileModel(
             platform_id=platform_id,
             name=name,
-            winrm_creds_id=winrm_creds_id,
-            ssh_creds_id=ssh_creds_id
+            creds_type=creds_type,
+            creds_id=creds_id
         )
         
         db.add(db_profile)
@@ -61,8 +65,8 @@ def update_profile(
     profile_id: int,
     platform_id: Optional[int] = Form(None),
     name: Optional[str] = Form(None),
-    winrm_creds_id: Optional[int] = Form(None),
-    ssh_creds_id: Optional[int] = Form(None),
+    creds_type: Optional[CredsType] = Form(None),
+    creds_id: Optional[int] = Form(None),
     db: Session = Depends(get_db)
 ):
     db_profile = db.query(ProfileModel).filter(ProfileModel.id == profile_id).first()
@@ -72,8 +76,8 @@ def update_profile(
     update_data = {
         "platform_id": platform_id,
         "name": name,
-        "winrm_creds_id": winrm_creds_id,
-        "ssh_creds_id": ssh_creds_id
+        "creds_type": creds_type,
+        "creds_id": creds_id
     }
     for key, value in update_data.items():
         if value is not None:

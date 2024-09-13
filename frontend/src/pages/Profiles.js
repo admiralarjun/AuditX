@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
-import ProfileList from '../components/ProfileList';
-import ControlsList from '../components/ControlsList';
+import React, { useEffect, useState } from 'react';
 import { getProfiles } from '../api/profileBackendApi';
+import ControlsList from '../components/ControlsList';
+import ProfileList from '../components/ProfileList';
 
 const Profiles = () => {
   const [profiles, setProfiles] = useState([]);

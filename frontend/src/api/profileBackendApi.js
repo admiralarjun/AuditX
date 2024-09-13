@@ -22,10 +22,11 @@ export const createProfile = async (profileData) => {
   const formData = new FormData();
   formData.append('platform_id', profileData.platform_id);
   formData.append('name', profileData.name);
-  if (profileData.winrm_creds_id) formData.append('winrm_creds_id', profileData.winrm_creds_id);
-  if (profileData.ssh_creds_id) formData.append('ssh_creds_id', profileData.ssh_creds_id);
+  formData.append('creds_type', profileData.creds_type);
+  if(profileData.creds_id) formData.append('creds_id', profileData.creds_id);
 
   try {
+    console.log("Creating profile:", profileData);
     const response = await axios.post(`${API_URL}/profiles/`, formData);
     return response.data;
   } catch (error) {

@@ -192,7 +192,7 @@ const CredentialsPage = () => {
   const saveSshCredentials = async () => {
     const formData = new FormData();
     formData.append("ssh_username", sshCredentials.ssh_username);
-    formData.append("ssh_ip", sshCredentials.ssh_ip);
+    formData.append("ssh_hostname", sshCredentials.ssh_ip);
     formData.append("ssh_password", sshCredentials.ssh_password);
     if (pemFile) {
       formData.append("pem_file", pemFile);
@@ -470,7 +470,7 @@ const CredentialsPage = () => {
                     textAlign: "left",
                   }}
                 >
-                  {tabValue === 0 ? cred.winrm_hostname : cred.ssh_ip}
+                  {tabValue === 0 ? cred.winrm_hostname : cred.ssh_hostname}
                 </Typography>
               </CardContent>
             </StyledCard>
@@ -502,7 +502,7 @@ const CredentialsPage = () => {
               Username: {tabValue === 0 ? selectedCredential?.winrm_username : selectedCredential?.ssh_username}
             </Typography>
             <Typography sx={{ color: "#7f8c8d", marginBottom: 1 }}>
-              {tabValue === 0 ? "Hostname" : "IP Address"}: {tabValue === 0 ? selectedCredential?.winrm_hostname : selectedCredential?.ssh_ip}
+              {tabValue === 0 ? "Hostname" : "IP Address"}: {tabValue === 0 ? selectedCredential?.winrm_hostname : selectedCredential?.ssh_hostname}
             </Typography>
             {tabValue === 0 && (
               <>

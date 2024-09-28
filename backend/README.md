@@ -98,7 +98,13 @@ OpenAPI JSON: `/openapi.json`
    pipenv shell
    ```
 
-2. Start the FastAPI server with hot-reloading:
+2. Install dependencies:
+
+   ```
+   pipenv install
+   ```
+
+3. Start the FastAPI server with hot-reloading:
    ```
    uvicorn main:app --reload
    ```

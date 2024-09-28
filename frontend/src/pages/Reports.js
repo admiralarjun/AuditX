@@ -1,33 +1,22 @@
-import React, { useState, useEffect } from "react";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import SecurityIcon from "@mui/icons-material/Security";
 import {
   Box,
   Card,
   CardContent,
-  Typography,
-  Paper,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   CircularProgress,
-  Grid,
-  IconButton,
-  Tooltip,
   Container,
+  Grid,
+  Typography
 } from "@mui/material";
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-import DescriptionIcon from "@mui/icons-material/Description";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import SecurityIcon from "@mui/icons-material/Security";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import { fetchReports } from "../api/reportapi";
-import { jsPDF } from "jspdf";
+import { createTheme, styled, ThemeProvider } from "@mui/material/styles";
 import "jspdf-autotable";
+import React, { useEffect, useState } from "react";
+import { fetchReports } from "../api/reportapi";
+import FileAccordion from "../components/FileAccordion";
 
 const violetHackerTheme = createTheme({
   palette: {
@@ -50,7 +39,7 @@ const violetHackerTheme = createTheme({
 
 const StyledBox = styled(Box)(({ theme }) => ({
   width: "100%",
-  height: "100vh",
+  height: "auto",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -107,6 +96,7 @@ const ReportDisplay = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedControl, setExpandedControl] = useState(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -235,179 +225,11 @@ const ReportDisplay = () => {
   };
 
   const DetailedReport = ({ report }) => {
-    try {
-      const data = JSON.parse(report.result_json);
-
-      const exportPDF = () => {
-        const doc = new jsPDF();
-
-        // Add title
-        doc.setFontSize(18);
-        doc.text(`Detailed Report: ${report.id}`, 14, 20);
-
-        // Add platform information
-        doc.setFontSize(14);
-        doc.text("Platform", 14, 30);
-        doc.setFontSize(12);
-        doc.text(`Name: ${data.platform.name}`, 14, 40);
-        doc.text(`Release: ${data.platform.release}`, 14, 50);
-
-        let yPos = 70;
-
-        // Add profile and control information
-        data.profiles.forEach((profile, index) => {
-          doc.setFontSize(14);
-          doc.text(`Profile: ${profile.title}`, 14, yPos);
-          yPos += 10;
-          doc.setFontSize(10);
-          doc.text(`SHA256: ${profile.sha256}`, 14, yPos);
-          yPos += 10;
-
-          // Add table for controls
-          const tableData = profile.controls.map((control) => [
-            control.id,
-            control.title,
-            control.results[0].status,
-          ]);
-
-          doc.autoTable({
-            startY: yPos,
-            head: [["Control ID", "Title", "Status"]],
-            body: tableData,
-          });
-
-          yPos = doc.lastAutoTable.finalY + 20;
-
-          // Add new page if needed
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
-        });
-
-        // Save the PDF
-        doc.save(`Report_${report.id}.pdf`);
-      };
-
-      return (
-        <Box sx={{ mt: 4, pb: 4 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography variant="h5" gutterBottom>
-              Detailed Report
-            </Typography>
-            <Tooltip title="Export as PDF">
-              <IconButton onClick={exportPDF}>
-                <PictureAsPdfIcon color="error" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Platform
-                </Typography>
-                <Typography variant="body1">
-                  Name: {data.platform.name}
-                </Typography>
-                <Typography variant="body1">
-                  Release: {data.platform.release}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Statistics
-                </Typography>
-                <Typography variant="body1">
-                  Total Controls:{" "}
-                  {data.profiles.reduce(
-                    (total, profile) => total + profile.controls.length,
-                    0
-                  )}
-                </Typography>
-                <Typography variant="body1">
-                  Passed Controls:{" "}
-                  {data.profiles.reduce(
-                    (total, profile) =>
-                      total +
-                      profile.controls.filter(
-                        (control) => control.results[0].status === "passed"
-                      ).length,
-                    0
-                  )}
-                </Typography>
-                <Typography variant="body1">
-                  Failed Controls:{" "}
-                  {data.profiles.reduce(
-                    (total, profile) =>
-                      total +
-                      profile.controls.filter(
-                        (control) => control.results[0].status !== "passed"
-                      ).length,
-                    0
-                  )}
-                </Typography>
-              </Paper>
-            </Grid>
-            {data.profiles.map((profile) => (
-              <Grid item xs={12} key={profile.sha256}>
-                <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Profile: {profile.title}
-                  </Typography>
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Control ID</TableCell>
-                          <TableCell>Title</TableCell>
-                          <TableCell>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {profile.controls.map((control) => (
-                          <TableRow key={control.id}>
-                            <TableCell>{control.id}</TableCell>
-                            <TableCell>{control.title}</TableCell>
-                            <TableCell>
-                              {control.results[0].status === "passed" ? (
-                                <Chip
-                                  label="Passed"
-                                  color="success"
-                                  size="small"
-                                />
-                              ) : (
-                                <Chip
-                                  label="Failed"
-                                  color="error"
-                                  size="small"
-                                />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      );
-    } catch (error) {
-      console.error(`Error parsing detailed report ${report.id}:`, error);
-      return <Typography variant="body1">Failed to load report details</Typography>;
-    }
+    console.log("report", report);
+    console.log("report.result_json", JSON.parse(report.result_json));
+    return (
+      <FileAccordion fileName={`Report ${report.profile_id}`} fileJson={JSON.parse(report.result_json)} />
+    );
   };
 
   return (
@@ -467,10 +289,10 @@ const ReportDisplay = () => {
             ))
           )}
         </ReportScroller>
-        <Container maxWidth="lg">
-          {selectedReport && <DetailedReport report={selectedReport} />}
-        </Container>
       </StyledBox>
+      <Container maxWidth="lg">
+          {selectedReport && <DetailedReport report={selectedReport} />}
+      </Container>
     </ThemeProvider>
   );
 };

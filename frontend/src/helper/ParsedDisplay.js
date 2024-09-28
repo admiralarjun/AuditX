@@ -236,7 +236,31 @@ const JsonDisplay = ({ data }) => {
   );
 };
 
+const ParsedDisplay = ({ data }) => {
+  const send_results = to_results(data);
+  console.log("send_results", send_results);
+  console.log("data", data);
 
-export default JsonDisplay;
+  return (
+    <div>
+      {!data && (
+        <Typography color="error">No data available</Typography>
+      )}
+      {data && (
+        <>
+          {data.platform && (
+            <PlatformInfo platform={data.platform} />
+          )}
+          {data.profiles && data.profiles.length > 0 && (
+            <ProfilesInfo profiles={data.profiles} />
+          )}
+          {/* <SaveResultButton send_results={send_results} /> */}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ParsedDisplay;
 
 

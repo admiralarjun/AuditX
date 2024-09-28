@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import JsonDisplay from "../helper/JsonDisplay";
+// import { RepeatRounded } from "@mui/icons-material";
 
 const API_URL = "http://localhost:8000";
 
@@ -38,21 +39,31 @@ const executeControls = async (profileId, selectedControlsList) => {
     selectedCredentialId,
     selectedCredentialType,
   });
-
+  
+  try {
+    await axios.post(`${API_URL}/results/`, {
+      profile_id: profileId,
+      result_json: JSON.stringify(response.data),
+    });
+  } catch(err) {
+    console.log("Error pushing result to API:", err);
+  }
+  
   const parsedResults = response.data.results.map(result => JSON.parse(result));
 
   // Push results to API
-  for (const file of parsedResults) {
-    try {
-      await axios.post(`${API_URL}/results/`, {
-        profile_id: profileId,
-        result_json: JSON.stringify(file.result_json),
-      });
-      console.log(`Successfully pushed result for control ${file.id}`);
-    } catch (err) {
-      console.error(`Error pushing result for control ${file.id}:`, err);
-    }
-  }
+  // for (const file of parsedResults) {
+  //   try {
+  //     console.log("file", file);
+  //     await axios.post(`${API_URL}/results/`, {
+  //       profile_id: profileId,
+  //       result_json: JSON.stringify(file.result_json),
+  //     });
+  //     console.log(`Successfully pushed result for control ${file.id}`);
+  //   } catch (err) {
+  //     console.error(`Error pushing result for control ${file.id}:`, err);
+  //   }
+  // }
 
   return parsedResults;
 };

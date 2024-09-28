@@ -1,33 +1,27 @@
-import React, { useState, useEffect } from "react";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import SecurityIcon from "@mui/icons-material/Security";
 import {
   Box,
   Card,
   CardContent,
-  Typography,
-  Paper,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   CircularProgress,
+  Container,
   Grid,
   IconButton,
+  Paper,
   Tooltip,
-  Container,
+  Typography
 } from "@mui/material";
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-import DescriptionIcon from "@mui/icons-material/Description";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import SecurityIcon from "@mui/icons-material/Security";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import { fetchReports } from "../api/reportapi";
+import { createTheme, styled, ThemeProvider } from "@mui/material/styles";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import React, { useEffect, useState } from "react";
+import { fetchReports } from "../api/reportapi";
+import FileAccordion from "../components/FileAccordion";
 
 const violetHackerTheme = createTheme({
   palette: {
@@ -107,6 +101,7 @@ const ReportDisplay = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedControl, setExpandedControl] = useState(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -238,6 +233,10 @@ const ReportDisplay = () => {
     try {
       const data = JSON.parse(report.result_json);
 
+      const handleAccordionChange = (controlId, isExpanded) => {
+        setExpandedControl(isExpanded ? controlId : null);
+      };
+
       const exportPDF = () => {
         const doc = new jsPDF();
 
@@ -288,7 +287,6 @@ const ReportDisplay = () => {
         // Save the PDF
         doc.save(`Report_${report.id}.pdf`);
       };
-
       return (
         <Box sx={{ mt: 4, pb: 4 }}>
           <Box
@@ -364,40 +362,14 @@ const ReportDisplay = () => {
                   <Typography variant="h6" gutterBottom>
                     Profile: {profile.title}
                   </Typography>
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Control ID</TableCell>
-                          <TableCell>Title</TableCell>
-                          <TableCell>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {profile.controls.map((control) => (
-                          <TableRow key={control.id}>
-                            <TableCell>{control.id}</TableCell>
-                            <TableCell>{control.title}</TableCell>
-                            <TableCell>
-                              {control.results[0].status === "passed" ? (
-                                <Chip
-                                  label="Passed"
-                                  color="success"
-                                  size="small"
-                                />
-                              ) : (
-                                <Chip
-                                  label="Failed"
-                                  color="error"
-                                  size="small"
-                                />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  {profile.controls.map((control) => (
+                    <FileAccordion
+                    key={control.id}
+                    control={control}
+                    expanded={expandedControl === control.id}
+                    onChange={handleAccordionChange}
+                    />
+                  ))}
                 </Paper>
               </Grid>
             ))}

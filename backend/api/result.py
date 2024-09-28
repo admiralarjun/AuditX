@@ -69,7 +69,7 @@ def delete_result(result_id: int, db: Session = Depends(get_db)):
     db_result = db.query(ResultModel).filter(ResultModel.id == result_id).first()
     if db_result is None:
         raise HTTPException(status_code=404, detail="Result not found")
-    
+
     db.delete(db_result)
     db.commit()
     return db_result

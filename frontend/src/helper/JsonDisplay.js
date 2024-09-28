@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import axios from "axios";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
-  Typography,
+  Box,
+  Button,
+  Chip,
   Paper,
   Table,
   TableBody,
@@ -9,12 +11,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  Box,
-  Button,
+  Typography,
 } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
+import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -237,4 +236,31 @@ const JsonDisplay = ({ data }) => {
   );
 };
 
-export default JsonDisplay;
+const JsonDisplay2 = ({ data }) => {
+  const send_results = to_results(data);
+  console.log("send_results", send_results);
+  console.log("data", data);
+
+  return (
+    <div>
+      {!data && (
+        <Typography color="error">No data available</Typography>
+      )}
+      {data && (
+        <>
+          {data.platform && (
+            <PlatformInfo platform={data.platform} />
+          )}
+          {data.profiles && data.profiles.length > 0 && (
+            <ProfilesInfo profiles={data.profiles} />
+          )}
+          {/* <SaveResultButton send_results={send_results} /> */}
+        </>
+      )}
+    </div>
+  );
+};
+
+export { JsonDisplay, JsonDisplay2 };
+
+

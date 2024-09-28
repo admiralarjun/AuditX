@@ -1,37 +1,41 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Typography,
-} from '@mui/material';
-import React from 'react';
-import { JsonDisplay2 } from "../helper/JsonDisplay";
+import CircularProgress from '@mui/material/CircularProgress';
+import React, { useEffect, useState } from 'react';
+import JsonDisplay from '../helper/JsonDisplay';
 
-const FileAccordion = ({ control, expanded, onChange }) => {
-  const isPassed = control.results[0].status === "passed";
-  console.log("Control:", control);
-  console.log("Expanded:", expanded);
+const FileAccordion = ({ fileJson, fileName }) => {
+  const [fileData, setFileData] = useState(null);
+
+  useEffect(() => {
+    if (fileJson) {
+      setFileData(fileJson);
+    } else {
+      setFileData({ error: "No data available for this file" });
+    }
+  }, [fileJson]);
+
+  if (!fileData) return <CircularProgress />;
+
+  const isPassed = !JSON.stringify(fileData).includes("failed");
+
   return (
-    <Accordion 
-      expanded={expanded}
-      onChange={(event, isExpanded) => onChange(control.id, isExpanded)}
-      sx={{ marginBottom: 2 }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls={`panel-${control.id}-content`}
-        id={`panel-${control.id}-header`}
-        sx={{ backgroundColor: isPassed ? "success.main" : "error.main" }}
-      >
-        <Typography variant="body1" sx={{ color: "white" }}>
-          {control.id}: {control.title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <JsonDisplay2 data={control} />
-      </AccordionDetails>
-    </Accordion>
+    <>
+      <JsonDisplay data={fileData} />
+    </>
+    // <Accordion sx={{ marginBottom: 2 }}>
+    //   <AccordionSummary
+    //     expandIcon={<ExpandMoreIcon />}
+    //     aria-controls={`panel-${fileName}-content`}
+    //     id={`panel-${fileName}-header`}
+    //     sx={{ backgroundColor: isPassed ? "success.main" : "error.main" }}
+    //   >
+    //     <Typography variant="body1" sx={{ color: "white" }}>
+    //       {fileName}
+    //     </Typography>
+    //   </AccordionSummary>
+    //   <AccordionDetails>
+    //     <JsonDisplay  data={fileData} />
+    //   </AccordionDetails>
+    // </Accordion>
   );
 };
 

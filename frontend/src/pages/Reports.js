@@ -1,8 +1,12 @@
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SecurityIcon from "@mui/icons-material/Security";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Card,
   CardContent,
@@ -16,7 +20,53 @@ import { createTheme, styled, ThemeProvider } from "@mui/material/styles";
 import "jspdf-autotable";
 import React, { useEffect, useState } from "react";
 import { fetchReports } from "../api/reportapi";
-import FileAccordion from "../components/FileAccordion";
+import JsonDisplay from "../helper/JsonDisplay";
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const FileAccordion = ({ fileJson, fileName }) => {
+  const [fileData, setFileData] = useState(null);
+
+  useEffect(() => {
+    if (fileJson) {
+      setFileData(fileJson);
+      console.log("fileData", fileData);
+    } else {
+      setFileData({ error: "No data available for this file" });
+    }
+  }, [fileJson, fileData]);
+
+  if (!fileData) return <CircularProgress />;
+
+  const isPassed = !JSON.stringify(fileData).includes("failed");
+
+  return (
+    <Accordion sx={{ marginBottom: 2 }}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls={`panel-${fileName}-content`}
+        id={`panel-${fileName}-header`}
+        sx={{ backgroundColor: isPassed ? "success.main" : "error.main" }}
+      >
+        <Typography variant="body1" sx={{ color: "white" }}>
+          {fileName}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <JsonDisplay data={fileData} />
+      </AccordionDetails>
+    </Accordion>
+  );
+};
 
 const violetHackerTheme = createTheme({
   palette: {
@@ -96,7 +146,6 @@ const ReportDisplay = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedControl, setExpandedControl] = useState(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -113,24 +162,41 @@ const ReportDisplay = () => {
   }, []);
 
   const handleReportClick = (report) => {
+    console.log("report clicked");
     setSelectedReport(report);
+  };
+
+  const processReportData = (jsonString) => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (Array.isArray(data)) {
+        return data.flatMap(item => {
+          const parsedItem = JSON.parse(item);
+          return parsedItem.profiles || [];
+        });
+      } else if (data && data.profiles) {
+        return data.profiles;
+      } else {
+        console.error('Unexpected data structure:', data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      return [];
+    }
   };
 
   const getTotalControlsRun = () => {
     return reports.reduce((total, report) => {
-      try {
-        const data = JSON.parse(report.result_json);
-        return (
-          total +
-          data.profiles.reduce(
-            (profileTotal, profile) => profileTotal + profile.controls.length,
-            0
-          )
-        );
-      } catch (error) {
-        console.error(`Error parsing report ${report.id}:`, error);
-        return total;
-      }
+      const profiles = processReportData(report.result_json);
+      
+      return total + profiles.reduce((profileTotal, profile) => {
+        if (!profile.controls || !Array.isArray(profile.controls)) {
+          console.error('Profile does not have controls array:', profile);
+          return profileTotal;
+        }
+        return profileTotal + profile.controls.length;
+      }, 0);
     }, 0);
   };
 
@@ -138,99 +204,125 @@ const ReportDisplay = () => {
     let passed = 0;
     let failed = 0;
     reports.forEach((report) => {
-      try {
-        const data = JSON.parse(report.result_json);
-        data.profiles.forEach((profile) => {
-          profile.controls.forEach((control) => {
-            if (control.results[0].status === "passed") {
+      const profiles = processReportData(report.result_json);
+      
+      profiles.forEach((profile) => {
+        if (!profile.controls || !Array.isArray(profile.controls)) {
+          console.error('Profile does not have controls array:', profile);
+          return;
+        }
+        profile.controls.forEach((control) => {
+          if (!control.results || !Array.isArray(control.results)) {
+            console.error('Control does not have results array:', control);
+            return;
+          }
+          control.results.forEach((result) => {
+            if (result.status === "passed") {
               passed++;
             } else {
               failed++;
             }
           });
         });
-      } catch (error) {
-        console.error(`Error parsing report ${report.id}:`, error);
-      }
+      });
     });
     return { passed, failed };
   };
 
   const ReportCard = ({ report }) => {
-    try {
-      const data = JSON.parse(report.result_json);
-      const passedControls = data.profiles.reduce(
-        (total, profile) =>
-          total +
-          profile.controls.filter(
-            (control) => control.results[0].status === "passed"
-          ).length,
-        0
-      );
-      const failedControls = data.profiles.reduce(
-        (total, profile) =>
-          total +
-          profile.controls.filter(
-            (control) => control.results[0].status !== "passed"
-          ).length,
-        0
-      );
+    let passedControls = 0;
+    let failedControls = 0;
 
-      return (
-        <Card
-          sx={{
-            minWidth: 250,
-            m: 2,
-            cursor: "pointer",
-            transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
-            "&:hover": { transform: "scale(1.05)", boxShadow: 3 },
-          }}
-          onClick={() => handleReportClick(report)}
-        >
-          <CardContent sx={{ p: 3 }}>
-            <Typography
-              variant="h6"
-              component="div"
-              noWrap
-              color="primary"
-              gutterBottom
-            >
-              Report {report.id}
-            </Typography>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}
-            >
-              <Chip
-                icon={<CheckCircleIcon />}
-                label={`Passed: ${passedControls}`}
-                color="success"
-                size="small"
-                sx={{ opacity: 0.8, mr: 1 }}
-              />
-              <Chip
-                icon={<CancelIcon />}
-                label={`Failed: ${failedControls}`}
-                color="error"
-                size="small"
-                sx={{ opacity: 0.8 }}
-              />
-            </Box>
-          </CardContent>
-        </Card>
-      );
-    } catch (error) {
-      console.error(`Error parsing report ${report.id}:`, error);
-      return null;
-    }
-  };
+    const profiles = processReportData(report.result_json);
+    
+    profiles.forEach((profile) => {
+      if (!profile.controls || !Array.isArray(profile.controls)) {
+        console.error('Profile does not have controls array:', profile);
+        return;
+      }
+      profile.controls.forEach((control) => {
+        if (!control.results || !Array.isArray(control.results)) {
+          console.error('Control does not have results array:', control);
+          return;
+        }
+        control.results.forEach((result) => {
+          if (result.status === "passed") {
+            passedControls++;
+          } else {
+            failedControls++;
+          }
+        });
+      });
+    });
 
-  const DetailedReport = ({ report }) => {
-    console.log("report", report);
-    console.log("report.result_json", JSON.parse(report.result_json));
+
     return (
-      <FileAccordion fileName={`Report ${report.profile_id}`} fileJson={JSON.parse(report.result_json)} />
+      <Card
+        sx={{
+          minWidth: 250,
+          m: 2,
+          cursor: "pointer",
+          transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+          "&:hover": { transform: "scale(1.05)", boxShadow: 3 },
+        }}
+        onClick={() => handleReportClick(report)}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            noWrap
+            color="primary"
+            gutterBottom
+          >
+            Report at
+            <Typography variant="body1" color="textSecondary">
+              {formatDate(report.created_at)}
+            </Typography>
+          </Typography>
+          <Box
+            sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}
+          >
+            <Chip
+              icon={<CheckCircleIcon />}
+              label={`Passed: ${passedControls}`}
+              color="success"
+              size="small"
+              sx={{ opacity: 0.8, mr: 1 }}
+            />
+            <Chip
+              icon={<CancelIcon />}
+              label={`Failed: ${failedControls}`}
+              color="error"
+              size="small"
+              sx={{ opacity: 0.8 }}
+            />
+          </Box>
+        </CardContent>
+      </Card>
     );
   };
+
+  const DetailedReport = ({ created_at, report }) => {
+    return (
+      <>
+        <Typography variant="h6">
+          Results ran at {formatDate(created_at)}
+        </Typography>
+        {report.length > 0 ? (
+          report.map((file, index) => (
+            <FileAccordion key={index} fileName={`Control ${JSON.parse(file).profiles[0].controls[0].id}`} fileJson={JSON.parse(file)} />
+          ))
+        ) : (
+          <Typography>No results found</Typography>
+        )}
+      </>
+    );
+  };
+
+  if(reports.length === 0) {
+    return <Typography variant="body1" color="error">No reports found</Typography>;
+  }
 
   return (
     <ThemeProvider theme={violetHackerTheme}>
@@ -291,7 +383,7 @@ const ReportDisplay = () => {
         </ReportScroller>
       </StyledBox>
       <Container maxWidth="lg">
-          {selectedReport && <DetailedReport report={selectedReport} />}
+        {selectedReport && <DetailedReport created_at={selectedReport.created_at} report={JSON.parse(selectedReport.result_json)} />}
       </Container>
     </ThemeProvider>
   );

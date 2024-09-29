@@ -29,8 +29,3 @@ export const fetchReportById = async (id) => {
     throw error;
   }
 };
-
-export default {
-  fetchReports,
-  fetchReportById
-};

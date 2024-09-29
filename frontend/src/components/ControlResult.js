@@ -40,14 +40,14 @@ const executeControls = async (profileId, selectedControlsList) => {
     selectedCredentialType,
   });
   
-  try {
-    await axios.post(`${API_URL}/results/`, {
-      profile_id: profileId,
-      result_json: JSON.stringify(response.data),
-    });
-  } catch(err) {
-    console.log("Error pushing result to API:", err);
-  }
+  // try {
+  //   await axios.post(`${API_URL}/results/`, {
+  //     profile_id: profileId,
+  //     result_json: JSON.stringify(response.data),
+  //   });
+  // } catch(err) {
+  //   console.log("Error pushing result to API:", err);
+  // }
   
   const parsedResults = response.data.results.map(result => JSON.parse(result));
 
@@ -104,6 +104,7 @@ const FileAccordion = ({ fileJson, fileName }) => {
 };
 
 const ResultDisplay = ({ files, profileName }) => {
+  console.log("files, lets see", files);
   return (
     <>
       <Typography variant="h6">

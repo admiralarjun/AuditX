@@ -139,30 +139,15 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                     # Get the JSON output
                     result_json = process.stdout
                     print(f"Result JSON: {result_json}")
-                    db_result = ResultModel(
-                        profile_id=profile_id,
-                        result_json=result_json  # Store the entire JSON output as a string
-                    )
-                    db.add(db_result)
-                    db.commit()
-                    db.refresh(db_result)
-
+                
                     result_data.append(result_json)
 
                 except subprocess.CalledProcessError as e:
                     # Capture stdout even if the command failed (non-zero exit code)
                     result_json = e.stdout
                     print(f"Result JSON: {result_json}")
-                    # Persist the result in the database
-                    db_result = ResultModel(
-                        profile_id=profile_id,
-                        result_json=result_json  # Store the entire JSON output as a string
-                    )
-                    db.add(db_result)
-                    db.commit()
-                    db.refresh(db_result)
 
-                    result_data.append(db_result)
+                    result_data.append(result_json)
                 
                 finally:
                     # Ensure the temporary file is deleted
@@ -170,6 +155,16 @@ async def execute_controls(profile_id: int, request: Request, db: Session = Depe
                         os.remove(temp_file_path)
                     except Exception as e:
                         print(f"Failed to delete temporary file {temp_file_path}: {str(e)}")
+
+        result_string = json.dumps(result_data)
+        db_result = ResultModel(
+            profile_id=profile_id,
+            result_json=result_string  # Store the entire JSON output as a string
+        )
+        db.add(db_result)
+        db.commit()
+        db.refresh(db_result)
+
         return {"results": result_data}
 
     except HTTPException as http_exc:

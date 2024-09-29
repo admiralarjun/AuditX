@@ -25,7 +25,7 @@ from copilot import router as copilot_router
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001"],  # Adjust this to match your frontend's URL
+    allow_origins=["http://localhost:3000"],  # Adjust this to match your frontend's URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
